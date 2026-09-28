@@ -92,6 +92,22 @@ p {
     border-bottom: 1px solid #292929;
 }
 
+.hero-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+}
+
+.profile-picture {
+    width: 220px;
+    height: 220px;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+}
+
 .small-title {
     color: #777;
     font-size: 13px;
