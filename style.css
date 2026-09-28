@@ -337,8 +337,11 @@ footer p {
 
 .pet-images img {
     width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
     display: block;
     border-radius: 5px;
+    background: #181818;
 }
 
 .back-link {
