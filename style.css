@@ -99,13 +99,57 @@ p {
     gap: 60px;
 }
 
+.profile-card {
+    position: relative;
+    flex: 0 0 230px;
+    height: 330px;
+    padding: 7px;
+    overflow: hidden;
+    border: 1px solid #d8c58a;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #f2dfaa, #917c49 24%, #26231b 48%, #d8c58a 72%, #5b4c2f);
+    box-shadow: 0 14px 35px #0009, inset 0 0 0 1px #fff5;
+    transform: rotate(2deg);
+    transition: transform 250ms ease, box-shadow 250ms ease;
+}
+
+.profile-card::after {
+    position: absolute;
+    inset: -45% -60%;
+    content: "";
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(110deg, transparent 38%, #ffffff08 43%, #fff9 49%, #b9e9ff66 51%, #f5c9ff55 53%, #fff8 55%, transparent 62%);
+    transform: translateX(-65%) rotate(12deg);
+}
+
+.profile-card:hover {
+    transform: rotate(0) translateY(-5px);
+    box-shadow: 0 22px 45px #000b, 0 0 22px #d8c58a55, inset 0 0 0 1px #fff8;
+}
+
+.profile-card:hover::after {
+    opacity: 1;
+    transform: translateX(65%) rotate(12deg);
+    transition: transform 750ms ease, opacity 150ms ease;
+}
+
 .profile-picture {
-    width: 220px;
-    height: 220px;
-
+    display: block;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
+    object-position: center 38%;
+    border: 1px solid #171717;
+    border-radius: 7px;
+}
 
-    border-radius: 50%;
+@media (prefers-reduced-motion: reduce) {
+    .profile-card,
+    .profile-card::after,
+    .profile-card:hover::after {
+        transition: none;
+    }
 }
 
 .small-title {
@@ -361,6 +405,17 @@ footer p {
 
     .hero {
         min-height: 550px;
+    }
+
+    .hero-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .profile-card {
+        align-self: center;
+        flex-basis: 330px;
+        width: 230px;
     }
 
     .hero h1 {
