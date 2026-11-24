@@ -447,57 +447,53 @@ footer p {
 }
 
 
-/* GENERATIVE IDENTITY (hero background, see identity.js) */
+/* GENERATIVE IDENTITY (pixel background, see identity.js) */
 
-/* Takes no space: static vertical position is the top of the hero, and
-   left/right resolve against the page, so it is full-width without 100vw. */
+/* Fixed behind the whole page. 100vh rather than inset: 0, because it doesn't
+   change when a phone's address bar hides, so scrolling never restarts it. */
 .identity {
-    --identity-bg: 17, 17, 17;
-
-    position: absolute;
+    position: fixed;
     z-index: -1;
+    top: 0;
     left: 0;
     right: 0;
-    height: var(--identity-height, 650px);
+    height: 100vh;
     overflow: hidden;
     pointer-events: none;
 }
 
 .identity-canvas {
     position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0.22;
+    image-rendering: pixelated;
 }
 
-/* Radial part: 0.88 behind the hero text. Even a full-strength accent pixel
-   under it leaves all hero text at WCAG AA. The rest only darkens further. */
+/* Dims the art to about 8% white behind the content column, so that text
+   stays at WCAG AA even on top of a solid block of lit pixels. */
 .identity-scrim {
     position: absolute;
     inset: 0;
-    background:
-        radial-gradient(
-            var(--identity-rx, 100%) var(--identity-ry, 100%)
-            at var(--identity-x, 50%) var(--identity-y, 50%),
-            rgba(var(--identity-bg), 0.88) 72%,
-            rgba(var(--identity-bg), 0) 100%
-        ),
-        linear-gradient(
-            rgb(var(--identity-bg)),
-            rgba(var(--identity-bg), 0.12) 18%,
-            rgba(var(--identity-bg), 0.12) 75%,
-            rgb(var(--identity-bg))
-        );
+    background: linear-gradient(
+        to right,
+        rgba(17, 17, 17, 0),
+        rgba(17, 17, 17, 0.65) calc(50% - 500px),
+        rgba(17, 17, 17, 0.65) calc(50% + 500px),
+        rgba(17, 17, 17, 0)
+    );
+}
+
+/* These greys are below AA on plain #111 already (2.6 to 4.2:1). */
+.identity ~ main .small-title,
+.identity ~ main .project-top,
+.identity ~ main .education-item span,
+.identity ~ footer p {
+    color: #949494;
 }
 
 .hero {
     position: relative;
-}
-
-/* #777 on #111 is 4.2:1, below AA before any artwork. */
-.hero .small-title {
-    color: #949494;
 }
 
 /* Sits inside the hero's existing bottom padding. */

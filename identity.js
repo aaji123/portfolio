@@ -1,44 +1,40 @@
 /*
- * Generative identity: a seeded flow field behind the hero.
+ * Generative identity: a seeded, 1-bit pixel flow field behind the page.
  *
- * Everything visible is a pure function of (seed, size). Math.random() is never
- * used; the Roll button gets a fresh seed from crypto, and that seed is written
- * to the URL so the result can always be reproduced.
+ * Every load rolls a new seed, unless the URL carries one (#s=<seed>). From
+ * there, everything visible is a pure function of (seed, size): Math.random()
+ * is never used, so any seed can be reproduced from its link.
  */
 (function () {
     "use strict";
 
-    const hero = document.querySelector(".hero");
     const layer = document.querySelector(".identity");
     const canvas = document.querySelector(".identity-canvas");
     const controls = document.querySelector(".identity-controls");
     const rollButton = document.querySelector(".identity-roll");
     const seedLabel = document.querySelector(".identity-seed");
-    const textBlock = document.querySelector(".hero-content > div");
-    const heading = document.querySelector(".hero h1");
 
-    const ctx = canvas && canvas.getContext && canvas.getContext("2d", { alpha: false });
-    if (!hero || !layer || !ctx || !controls || !rollButton || !seedLabel || !textBlock || !heading) return;
-
-    const BG = [17, 17, 17]; // must match the body background and --identity-bg
-    const BG_CSS = "rgb(" + BG.join(",") + ")";
-    const FADE_CSS = "rgba(" + BG.join(",") + ",0.05)";
+    const ctx = canvas && canvas.getContext && canvas.getContext("2d");
+    if (!layer || !ctx || !controls || !rollButton || !seedLabel) return;
 
     const STEP_MS = 1000 / 60;
-    const MAX_DPR = 2;
-    const MAX_PIXELS = 2.5e6; // fill rate, not particle maths, is the bottleneck
+    const FADE = 0.965;     // trail brightness kept per step
+    const SPEED = 0.2;      // cells per step
+    const WARM_UP = 160;    // steps run before the first frame, so it starts full
     const RESIZE_DELAY = 150;
     const MAX_SEED_LENGTH = 32;
 
-    // Exactly two accents per identity.
-    const PALETTES = [
-        ["#d8c58a", "#5f9a94"], // brass, verdigris
-        ["#dca273", "#7585b8"], // apricot, dusk
-        ["#c98f86", "#7ba396"], // clay rose, sage
-        ["#9db6d6", "#c4a468"], // fog blue, ochre
-        ["#a6b684", "#bd8460"], // moss, terracotta
-        ["#b29bca", "#d3b789"]  // heather, sand
-    ];
+    // 8x8 ordered dither. A trail dissolves pixel by pixel instead of going grey.
+    const BAYER = [
+         0, 32,  8, 40,  2, 34, 10, 42,
+        48, 16, 56, 24, 50, 18, 58, 26,
+        12, 44,  4, 36, 14, 46,  6, 38,
+        60, 28, 52, 20, 62, 30, 54, 22,
+         3, 35, 11, 43,  1, 33,  9, 41,
+        51, 19, 59, 27, 49, 17, 57, 25,
+        15, 47,  7, 39, 13, 45,  5, 37,
+        63, 31, 55, 23, 61, 29, 53, 21
+    ].map(function (n) { return (n + 2.5) / 68; });
 
 
     /* ---------- seed ---------- */
@@ -60,13 +56,6 @@
             t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
             return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
         };
-    }
-
-    // <title> and the logo don't contain the name; the headline ("I'm Aaron.") does.
-    function nameFromPage() {
-        const text = heading.textContent.trim();
-        const match = /\bI['’]m\s+(.+?)[.!]?$/.exec(text);
-        return (match ? match[1] : text) || "Aaron";
     }
 
     // Returns null when the hash is not a seed (for example #about).
@@ -101,7 +90,6 @@
     function createIdentity(seed) {
         const hash = fnv1a(seed);
         const random = mulberry32(hash);
-        const palette = PALETTES[Math.floor(random() * PALETTES.length)];
         const baseAngle = random() * Math.PI * 2;
         const waves = [];
 
@@ -117,7 +105,7 @@
             });
         }
 
-        return { hash: hash, palette: palette, baseAngle: baseAngle, waves: waves };
+        return { hash: hash, baseAngle: baseAngle, waves: waves };
     }
 
     // u and v are centred and divided by the longer side, so every output size
@@ -132,148 +120,105 @@
     }
 
 
-    /* ---------- static renderer: first frame, reduced motion, favicon, OG ---------- */
+    /* ---------- simulation: a small grid of brightness values ---------- */
 
-    function renderStatic(target, identity, width, height, options) {
-        const random = mulberry32(identity.hash ^ 0x9e3779b9);
-        const extent = Math.max(width, height);
-        const bands = 4;
-        const pointsPerBand = Math.ceil(options.points / bands);
-        const paths = [];
+    function createField(identity, cols, rows) {
+        // Capped by area: one particle per 55 cells.
+        const count = Math.round(Math.min(1600, Math.max(14, cols * rows / 55)));
+        const extent = Math.max(cols, rows);
+        const random = mulberry32(identity.hash ^ 0x51ed270b);
+        const x = new Float64Array(count);
+        const y = new Float64Array(count);
+        const life = new Float64Array(count);
+        const light = new Float32Array(cols * rows);
+        let stepIndex = 0;
 
-        for (let i = 0; i < bands * 2; i++) paths.push(new Path2D());
-
-        for (let i = 0; i < options.count; i++) {
-            let x = random() * width;
-            let y = random() * height;
-            const color = i % 3 === 0 ? 1 : 0;
-
-            for (let band = 0; band < bands; band++) {
-                const path = paths[color * bands + band];
-                path.moveTo(x, y);
-                for (let p = 0; p < pointsPerBand; p++) {
-                    const angle = fieldAngle(identity, (x - width / 2) / extent, (y - height / 2) / extent, 0);
-                    x += Math.cos(angle) * options.stride;
-                    y += Math.sin(angle) * options.stride;
-                    path.lineTo(x, y);
-                }
-            }
+        function spawn(i) {
+            x[i] = random() * cols;
+            y[i] = random() * rows;
+            life[i] = 140 + random() * 260;
         }
 
-        target.globalAlpha = 1;
-        target.fillStyle = BG_CSS;
-        target.fillRect(0, 0, width, height);
-        target.lineWidth = options.lineWidth;
-        target.lineCap = "round";
-        target.lineJoin = "round";
+        for (let i = 0; i < count; i++) {
+            spawn(i);
+            life[i] *= random(); // stagger the first deaths
+        }
 
-        for (let band = 0; band < bands; band++) {
-            target.globalAlpha = options.alpha * (band + 1) / bands; // tail to head
-            for (let color = 0; color < 2; color++) {
-                target.strokeStyle = identity.palette[color];
-                target.stroke(paths[color * bands + band]);
+        function step() {
+            const sway = Math.sin(stepIndex * 0.0021) * 2.2;
+            for (let i = 0; i < light.length; i++) light[i] *= FADE;
+            for (let i = 0; i < count; i++) {
+                const angle = fieldAngle(identity, (x[i] - cols / 2) / extent, (y[i] - rows / 2) / extent, sway);
+                x[i] += Math.cos(angle) * SPEED;
+                y[i] += Math.sin(angle) * SPEED;
+                life[i] -= 1;
+                if (life[i] <= 0 || x[i] < 0 || y[i] < 0 || x[i] >= cols || y[i] >= rows) spawn(i);
+                light[Math.floor(y[i]) * cols + Math.floor(x[i])] = 1;
+            }
+            stepIndex++;
+        }
+
+        for (let i = 0; i < WARM_UP; i++) step();
+        return { cols: cols, rows: rows, light: light, step: step };
+    }
+
+    // Each pixel is either solid white or not drawn. The page's own black shows through.
+    function paint(target, field, image) {
+        const out = new Uint32Array(image.data.buffer);
+        for (let row = 0, i = 0; row < field.rows; row++) {
+            for (let col = 0; col < field.cols; col++, i++) {
+                out[i] = field.light[i] > BAYER[(row & 7) * 8 + (col & 7)] ? 0xffffffff : 0;
             }
         }
-        target.globalAlpha = 1;
+        target.putImageData(image, 0, 0);
     }
 
 
-    /* ---------- live renderer ---------- */
+    /* ---------- page background ---------- */
 
     let seed = "";
     let identity = null;
+    let field = null;
+    let image = null;
     let width = 0;
     let height = 0;
-    let dpr = 1;
-    let count = 0;
-    let particles = null; // x, y, remaining life; 3 floats per particle
-    let liveRandom = null;
-    let stepIndex = 0;
-
-    function spawn(i, firstTime) {
-        particles[i * 3] = liveRandom() * width;
-        particles[i * 3 + 1] = liveRandom() * height;
-        const life = 140 + liveRandom() * 260;
-        particles[i * 3 + 2] = firstTime ? life * liveRandom() : life; // stagger deaths
-    }
 
     function initialise() {
-        count = Math.round(Math.min(900, Math.max(140, width * height / 1300)));
-        canvas.width = Math.round(width * dpr);
-        canvas.height = Math.round(height * dpr);
-        ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
-
-        renderStatic(ctx, identity, width, height, {
-            count: count,
-            points: 72,
-            stride: 1.6,
-            lineWidth: 1.1,
-            alpha: 0.7
-        });
-
-        liveRandom = mulberry32(identity.hash ^ 0x51ed270b);
-        particles = new Float32Array(count * 3);
-        for (let i = 0; i < count; i++) spawn(i, true);
-        stepIndex = 0;
-        ctx.lineWidth = 1.1;
-        ctx.lineCap = "round";
+        const cell = width < 700 ? 4 : 6; // CSS pixels per art pixel
+        const cols = Math.ceil(width / cell);
+        const rows = Math.ceil(height / cell);
+        canvas.width = cols;
+        canvas.height = rows;
+        canvas.style.width = cols * cell + "px";
+        canvas.style.height = rows * cell + "px";
+        image = ctx.createImageData(cols, rows);
+        field = createField(identity, cols, rows);
+        paint(ctx, field, image);
     }
 
-    function step() {
-        const extent = Math.max(width, height);
-        const sway = Math.sin(stepIndex * 0.0021) * 2.2;
+    // Returns true when the canvas needs to be rebuilt.
+    function measure() {
+        const w = layer.clientWidth;
+        const h = layer.clientHeight;
+        if (!w || !h || (w === width && h === height)) return false;
+        width = w;
+        height = h;
+        return true;
+    }
 
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = FADE_CSS;
-        ctx.fillRect(0, 0, width, height);
+    let resizeTimer = 0;
 
-        // An 8-bit canvas rounds a 5% fade to nothing within ~10 levels of the
-        // background, leaving permanent ghost trails. Subtract one level now and
-        // then, and clamp back up to the background colour.
-        if (stepIndex % 8 === 0) {
-            ctx.globalCompositeOperation = "difference";
-            ctx.fillStyle = "rgb(1,1,1)";
-            ctx.fillRect(0, 0, width, height);
-            ctx.globalCompositeOperation = "lighten";
-            ctx.fillStyle = BG_CSS;
-            ctx.fillRect(0, 0, width, height);
-            ctx.globalCompositeOperation = "source-over";
-        }
-
-        ctx.globalAlpha = 0.7;
-        for (let color = 0; color < 2; color++) {
-            ctx.strokeStyle = identity.palette[color];
-            ctx.beginPath();
-            for (let i = 0; i < count; i++) {
-                if ((i % 3 === 0 ? 1 : 0) !== color) continue;
-                const o = i * 3;
-                const x = particles[o];
-                const y = particles[o + 1];
-                const angle = fieldAngle(identity, (x - width / 2) / extent, (y - height / 2) / extent, sway);
-                const nx = x + Math.cos(angle) * 1.2;
-                const ny = y + Math.sin(angle) * 1.2;
-                ctx.moveTo(x, y);
-                ctx.lineTo(nx, ny);
-                particles[o] = nx;
-                particles[o + 1] = ny;
-                particles[o + 2] -= 1;
-            }
-            ctx.stroke();
-        }
-        ctx.globalAlpha = 1;
-
-        // Respawn in index order so the PRNG stream stays reproducible.
-        for (let i = 0; i < count; i++) {
-            const o = i * 3;
-            const x = particles[o];
-            const y = particles[o + 1];
-            if (particles[o + 2] <= 0 || x < -10 || y < -10 || x > width + 10 || y > height + 10) spawn(i, false);
-        }
-        stepIndex++;
+    function onResize() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+            if (!measure()) return;
+            initialise();
+            updateLoop();
+        }, RESIZE_DELAY);
     }
 
 
-    /* ---------- loop: runs only when visible, on-screen and motion is allowed ---------- */
+    /* ---------- loop: runs only when visible and motion is allowed ---------- */
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let onScreen = false;
@@ -286,14 +231,17 @@
         // Fixed timestep: same speed and same sequence at 60, 90 or 120 Hz.
         backlog += Math.min(now - lastTime, STEP_MS * 2);
         lastTime = now;
+        let stepped = false;
         while (backlog >= STEP_MS - 1) {
-            step();
+            field.step();
             backlog -= STEP_MS;
+            stepped = true;
         }
+        if (stepped) paint(ctx, field, image);
     }
 
     function updateLoop() {
-        const shouldRun = onScreen && !document.hidden && !reducedMotion.matches && particles !== null;
+        const shouldRun = onScreen && !document.hidden && !reducedMotion.matches && field !== null;
         if (shouldRun && !frame) {
             lastTime = performance.now();
             backlog = 0;
@@ -305,58 +253,25 @@
     }
 
 
-    /* ---------- layout ---------- */
+    /* ---------- derived outputs: white pixels on black ---------- */
 
-    // Keeps the layer on the hero and the scrim on the text. Cheap, so it runs
-    // undebounced: the text is never without its scrim, even mid-resize.
-    function placeLayer() {
-        layer.style.setProperty("--identity-height", hero.offsetHeight + "px");
-        const box = layer.getBoundingClientRect();
-        const text = textBlock.getBoundingClientRect();
-        // The gradient is solid out to 72% of its radius. Size it so that the
-        // ellipse at 72% encloses the text box's corners, plus a margin.
-        const reach = function (size) {
-            return (size / 2 * Math.SQRT2 + 12) / 0.72;
-        };
-        layer.style.setProperty("--identity-x", text.left + text.width / 2 - box.left + "px");
-        layer.style.setProperty("--identity-y", text.top + text.height / 2 - box.top + "px");
-        layer.style.setProperty("--identity-rx", reach(text.width) + "px");
-        layer.style.setProperty("--identity-ry", reach(text.height) + "px");
-    }
+    function renderTile(w, h, cell) {
+        const small = document.createElement("canvas");
+        small.width = Math.ceil(w / cell);
+        small.height = Math.ceil(h / cell);
+        const smallCtx = small.getContext("2d");
+        paint(smallCtx, createField(identity, small.width, small.height),
+            smallCtx.createImageData(small.width, small.height));
 
-    // Returns true when the canvas needs to be rebuilt.
-    function measure() {
-        const w = layer.clientWidth;
-        const h = layer.clientHeight;
-        if (!w || !h) return false;
-        const ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR, Math.sqrt(MAX_PIXELS / (w * h)));
-        if (w === width && h === height && ratio === dpr) return false;
-        width = w;
-        height = h;
-        dpr = ratio;
-        return true;
-    }
-
-    let resizeTimer = 0;
-
-    function onResize() {
-        placeLayer();
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function () {
-            if (!measure()) return; // e.g. mobile URL bar: hero did not change
-            initialise();
-            updateLoop();
-        }, RESIZE_DELAY);
-    }
-
-
-    /* ---------- derived outputs ---------- */
-
-    function offscreen(w, h) {
-        const element = document.createElement("canvas");
-        element.width = w;
-        element.height = h;
-        return element;
+        const tile = document.createElement("canvas");
+        tile.width = w;
+        tile.height = h;
+        const tileCtx = tile.getContext("2d");
+        tileCtx.fillStyle = "#000";
+        tileCtx.fillRect(0, 0, w, h);
+        tileCtx.imageSmoothingEnabled = false;
+        tileCtx.drawImage(small, 0, 0, small.width * cell, small.height * cell);
+        return tile;
     }
 
     function headElement(selector, tag, attributes) {
@@ -371,19 +286,11 @@
     }
 
     function updateFavicon() {
-        const icon = offscreen(32, 32);
-        renderStatic(icon.getContext("2d"), identity, 32, 32, {
-            count: 16,
-            points: 24,
-            stride: 0.9,
-            lineWidth: 3.4,
-            alpha: 1
-        });
         headElement("link[rel='icon']", "link", {
             rel: "icon",
             type: "image/png",
             sizes: "32x32",
-            href: icon.toDataURL("image/png")
+            href: renderTile(32, 32, 2).toDataURL("image/png")
         });
     }
 
@@ -392,44 +299,28 @@
         ? function (callback) { window.requestIdleCallback(callback, { timeout: 4000 }); }
         : function (callback) { setTimeout(callback, 200); };
 
-    // Deferred and encoded off the main path so it never competes with a frame.
+    // Deferred, so it never competes with loading or rolling.
     function scheduleOgImage() {
         const target = identity;
         clearTimeout(ogTimer);
         ogTimer = setTimeout(function () {
             whenIdle(function () {
-                if (target !== identity) return;
-                const image = offscreen(1200, 630);
-                renderStatic(image.getContext("2d"), identity, 1200, 630, {
-                    count: 620,
-                    points: 72,
-                    stride: 1.6,
-                    lineWidth: 1.4,
-                    alpha: 0.85
+                if (target !== identity) return; // rolled again meanwhile
+                const tags = {
+                    "og:image": renderTile(1200, 630, 6).toDataURL("image/png"),
+                    "og:image:type": "image/png",
+                    "og:image:width": "1200",
+                    "og:image:height": "630"
+                };
+                Object.keys(tags).forEach(function (name) {
+                    // Separate tags: the static og:image in the page stays
+                    // first, because crawlers can't use a data URL.
+                    headElement("meta[data-identity='" + name + "']", "meta", {
+                        "data-identity": name,
+                        property: name,
+                        content: tags[name]
+                    });
                 });
-                image.toBlob(function (blob) {
-                    if (!blob) return;
-                    const reader = new FileReader();
-                    reader.onload = function () {
-                        if (target !== identity) return; // rolled again meanwhile
-                        const tags = {
-                            "og:image": reader.result,
-                            "og:image:type": "image/jpeg",
-                            "og:image:width": "1200",
-                            "og:image:height": "630"
-                        };
-                        Object.keys(tags).forEach(function (name) {
-                            // Separate tags: the static og:image in the page stays
-                            // first, because crawlers can't use a data URL.
-                            headElement("meta[data-identity='" + name + "']", "meta", {
-                                "data-identity": name,
-                                property: name,
-                                content: tags[name]
-                            });
-                        });
-                    };
-                    reader.readAsDataURL(blob);
-                }, "image/jpeg", 0.85);
             });
         }, 800);
     }
@@ -455,32 +346,27 @@
         applySeed(next);
     });
 
-    // The hash is shared with the nav. #s=... selects an identity, an empty hash
-    // (the logo link) is home, and section anchors leave the artwork alone.
+    // The hash is shared with the nav: only #s=... changes the artwork.
     window.addEventListener("hashchange", function () {
         const fromHash = seedFromHash();
         if (fromHash) applySeed(fromHash);
-        else if (location.hash === "" || location.hash === "#s=") applySeed(nameFromPage());
     });
 
     document.addEventListener("visibilitychange", updateLoop);
-    window.addEventListener("resize", onResize);
 
     reducedMotion.addEventListener("change", function () {
         if (width && height) initialise(); // back to the one clean static frame
         updateLoop();
     });
 
-    const resizeObserver = new ResizeObserver(onResize);
-    resizeObserver.observe(hero);
-    resizeObserver.observe(textBlock);
+    new ResizeObserver(onResize).observe(layer);
 
     new IntersectionObserver(function (entries) {
         onScreen = entries[entries.length - 1].isIntersecting;
         updateLoop();
     }).observe(layer);
 
-    placeLayer();
-    applySeed(seedFromHash() || nameFromPage());
+    // The automatic roll is not written to the URL, so a reload rolls again.
+    applySeed(seedFromHash() || freshSeed());
     controls.hidden = false;
 })();
