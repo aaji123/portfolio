@@ -1,5 +1,5 @@
 /*
- * Generative identity: a seeded, 1-bit pixel flow field behind the page.
+ * Generative identity: a seeded, 1-bit pixel flow field behind the hero.
  *
  * Every load rolls a new seed, unless the URL carries one (#s=<seed>). From
  * there, everything visible is a pure function of (seed, size): Math.random()
@@ -8,6 +8,7 @@
 (function () {
     "use strict";
 
+    const hero = document.querySelector(".hero");
     const layer = document.querySelector(".identity");
     const canvas = document.querySelector(".identity-canvas");
     const controls = document.querySelector(".identity-controls");
@@ -15,7 +16,7 @@
     const seedLabel = document.querySelector(".identity-seed");
 
     const ctx = canvas && canvas.getContext && canvas.getContext("2d");
-    if (!layer || !ctx || !controls || !rollButton || !seedLabel) return;
+    if (!hero || !layer || !ctx || !controls || !rollButton || !seedLabel) return;
 
     const STEP_MS = 1000 / 60;
     const FADE = 0.965;     // trail brightness kept per step
@@ -174,7 +175,7 @@
     }
 
 
-    /* ---------- page background ---------- */
+    /* ---------- hero background ---------- */
 
     let seed = "";
     let identity = null;
@@ -196,6 +197,10 @@
         paint(ctx, field, image);
     }
 
+    function placeLayer() {
+        layer.style.setProperty("--identity-height", hero.offsetHeight + "px");
+    }
+
     // Returns true when the canvas needs to be rebuilt.
     function measure() {
         const w = layer.clientWidth;
@@ -209,6 +214,7 @@
     let resizeTimer = 0;
 
     function onResize() {
+        placeLayer();
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () {
             if (!measure()) return;
@@ -218,7 +224,7 @@
     }
 
 
-    /* ---------- loop: runs only when visible and motion is allowed ---------- */
+    /* ---------- loop: runs only when visible, on-screen and motion is allowed ---------- */
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let onScreen = false;
@@ -359,7 +365,9 @@
         updateLoop();
     });
 
-    new ResizeObserver(onResize).observe(layer);
+    const resizeObserver = new ResizeObserver(onResize);
+    resizeObserver.observe(hero);
+    resizeObserver.observe(layer); // full width, so it can change when the hero doesn't
 
     new IntersectionObserver(function (entries) {
         onScreen = entries[entries.length - 1].isIntersecting;
@@ -367,6 +375,7 @@
     }).observe(layer);
 
     // The automatic roll is not written to the URL, so a reload rolls again.
+    placeLayer();
     applySeed(seedFromHash() || freshSeed());
     controls.hidden = false;
 })();

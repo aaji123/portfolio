@@ -449,15 +449,14 @@ footer p {
 
 /* GENERATIVE IDENTITY (pixel background, see identity.js) */
 
-/* Fixed behind the whole page. 100vh rather than inset: 0, because it doesn't
-   change when a phone's address bar hides, so scrolling never restarts it. */
+/* A full-width banner behind the hero. Takes no space: its static vertical
+   position is the top of the hero, and left/right resolve against the page. */
 .identity {
-    position: fixed;
+    position: absolute;
     z-index: -1;
-    top: 0;
     left: 0;
     right: 0;
-    height: 100vh;
+    height: var(--identity-height, 650px);
     overflow: hidden;
     pointer-events: none;
 }
@@ -470,25 +469,33 @@ footer p {
     image-rendering: pixelated;
 }
 
-/* Dims the art to about 8% white behind the content column, so that text
-   stays at WCAG AA even on top of a solid block of lit pixels. */
+/* First gradient: fades the banner's top and bottom edges into the page.
+   Second: dims the art to about 8% white behind the content column, so that
+   text stays at WCAG AA even on top of a solid block of lit pixels. */
 .identity-scrim {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        to right,
-        rgba(17, 17, 17, 0),
-        rgba(17, 17, 17, 0.65) calc(50% - 500px),
-        rgba(17, 17, 17, 0.65) calc(50% + 500px),
-        rgba(17, 17, 17, 0)
-    );
+    background:
+        linear-gradient(
+            rgb(17, 17, 17),
+            rgba(17, 17, 17, 0) 15%,
+            rgba(17, 17, 17, 0) 80%,
+            rgb(17, 17, 17)
+        ),
+        linear-gradient(
+            to right,
+            rgba(17, 17, 17, 0),
+            rgba(17, 17, 17, 0.65) calc(50% - 500px),
+            rgba(17, 17, 17, 0.65) calc(50% + 500px),
+            rgba(17, 17, 17, 0)
+        );
 }
 
 /* These greys are below AA on plain #111 already (2.6 to 4.2:1). */
-.identity ~ main .small-title,
-.identity ~ main .project-top,
-.identity ~ main .education-item span,
-.identity ~ footer p {
+.small-title,
+.project-top,
+.education-item span,
+footer p {
     color: #949494;
 }
 
