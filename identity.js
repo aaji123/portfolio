@@ -2,8 +2,7 @@
  * SEED INSTRUMENT
  *
  * Every visit rolls one seed, unless the URL carries one (#s=<seed>). That
- * seed drives everything generated on the page: the hero banner, the 1-bit
- * portrait, each project's sigil, the section rules, the favicon and the logo.
+ * seed drives everything generated on the page: the hero banner, each project's sigil, the section rules, the favicon and the logo.
  * Math.random() is never used, so any seed can be reproduced from its link.
  *
  * Each part below checks for its own markup, so the file works on every page.
@@ -14,7 +13,6 @@
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const MAX_SEED_LENGTH = 32;
     const WHITE = 0xffffffff;   // canvas pixels are little-endian ABGR
-    const BLACK = 0xff000000;
     const INK = 0xffe8e8e8;     // --fg
 
     // 8x8 ordered dither: shapes dissolve pixel by pixel instead of going grey.
@@ -360,125 +358,6 @@
             setIdentity: function (next) {
                 identity = next;
                 build();
-            }
-        };
-    }
-
-
-    /* ---------- portrait: the photo, re-printed with Atkinson dithering ---------- */
-
-    function createPortrait() {
-        const frameElement = document.querySelector(".portrait-frame");
-        const img = document.querySelector(".profile-picture");
-        const canvas = document.querySelector(".portrait-dither");
-        if (!frameElement || !img || !canvas) return null;
-
-        let tone = null; // luminance, 0..1, contrast-stretched
-        let cols = 0;
-        let rows = 0;
-        let identity = null;
-
-        // Samples the photo the way CSS shows it: cover, centred at 38% height.
-        function sample() {
-            cols = Math.round(canvas.clientWidth / 2);
-            rows = Math.round(canvas.clientHeight / 2);
-            if (!cols || !rows || !img.naturalWidth) return false;
-            const scale = Math.max(cols / img.naturalWidth, rows / img.naturalHeight);
-            const sw = cols / scale;
-            const sh = rows / scale;
-            const sx = (img.naturalWidth - sw) * 0.5;
-            const sy = (img.naturalHeight - sh) * 0.38;
-
-            const off = document.createElement("canvas");
-            off.width = cols;
-            off.height = rows;
-            const offCtx = off.getContext("2d");
-            offCtx.imageSmoothingQuality = "high";
-            offCtx.drawImage(img, sx, sy, sw, sh, 0, 0, cols, rows);
-            let data;
-            try {
-                data = offCtx.getImageData(0, 0, cols, rows).data;
-            } catch (error) {
-                return false; // opened from file://: keep the photo
-            }
-
-            tone = new Float32Array(cols * rows);
-            for (let i = 0; i < tone.length; i++) {
-                tone[i] = (0.2126 * data[i * 4] + 0.7152 * data[i * 4 + 1] + 0.0722 * data[i * 4 + 2]) / 255;
-            }
-            const sorted = Array.from(tone).sort(function (a, b) { return a - b; });
-            const low = sorted[Math.floor(sorted.length * 0.02)];
-            const high = sorted[Math.floor(sorted.length * 0.98)];
-            for (let i = 0; i < tone.length; i++) {
-                tone[i] = Math.min(1, Math.max(0, (tone[i] - low) / (high - low || 1)));
-            }
-            return true;
-        }
-
-        function render() {
-            if (!identity || (!tone && !sample())) return;
-            // Gamma below 1 lifts the midtones, where the face is; the seed
-            // leans each print a little lighter or darker.
-            const random = mulberry32(identity.hash ^ 0xa7c3e1d9);
-            const gamma = 0.55 + random() * 0.15;
-            const bias = -0.04 + random() * 0.08;
-            const buffer = new Float32Array(tone.length);
-            for (let i = 0; i < tone.length; i++) buffer[i] = Math.pow(tone[i], gamma) + bias;
-
-            const surface = pixels(canvas, cols, rows);
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    const i = y * cols + x;
-                    const value = buffer[i] > 0.5 ? 1 : 0;
-                    surface.out[i] = value ? WHITE : BLACK;
-                    // Atkinson: pass on 6/8 of the error, which keeps contrast high.
-                    const error = (buffer[i] - value) / 8;
-                    if (x + 1 < cols) buffer[i + 1] += error;
-                    if (x + 2 < cols) buffer[i + 2] += error;
-                    if (y + 1 < rows) {
-                        if (x > 0) buffer[i + cols - 1] += error;
-                        buffer[i + cols] += error;
-                        if (x + 1 < cols) buffer[i + cols + 1] += error;
-                    }
-                    if (y + 2 < rows) buffer[i + cols * 2] += error;
-                }
-            }
-            reveal(surface);
-        }
-
-        // Prints top to bottom, over whatever was there before.
-        function reveal(surface) {
-            if (reducedMotion.matches) {
-                surface.ctx.putImageData(surface.image, 0, 0);
-                frameElement.classList.add("is-dithered");
-                return;
-            }
-            const start = performance.now();
-            function scan(now) {
-                const progress = Math.min(1, (now - start) / 700);
-                surface.ctx.putImageData(surface.image, 0, 0, 0, 0, cols, Math.ceil(rows * progress));
-                if (progress === 1) {
-                    stopAnimation(scan);
-                    frameElement.classList.add("is-dithered");
-                }
-            }
-            startAnimation(scan);
-        }
-
-        function whenLoaded() {
-            if (img.complete && img.naturalWidth) render();
-            else img.addEventListener("load", render, { once: true });
-        }
-
-        watchSize(canvas, function () {
-            tone = null;
-            whenLoaded();
-        });
-
-        return {
-            setIdentity: function (next) {
-                identity = next;
-                whenLoaded();
             }
         };
     }
@@ -1050,7 +929,7 @@
 
     /* ---------- wiring ---------- */
 
-    const parts = [createBanner(), createPortrait(), createSigils(), createRules()].filter(Boolean);
+    const parts = [createBanner(), createSigils(), createRules()].filter(Boolean);
     const seedLabel = document.querySelector(".identity-seed");
     const footerSeed = document.querySelector(".footer-seed");
     const rollButton = document.querySelector(".identity-roll");

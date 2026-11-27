@@ -253,7 +253,7 @@ nav {
 }
 
 
-/* Portrait: the photo, re-printed as 1-bit by identity.js. Hover for the original. */
+/* Portrait */
 
 .portrait {
     justify-self: end;
@@ -284,34 +284,9 @@ nav {
     height: 100%;
     object-fit: cover;
     object-position: center 38%;
-    transition: opacity 300ms ease;
-}
-
-.portrait-dither {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    width: calc(100% - 12px);
-    height: calc(100% - 12px);
-    image-rendering: pixelated;
-    transition: opacity 300ms ease;
-}
-
-.portrait-frame.is-dithered .profile-picture {
-    opacity: 0;
-}
-
-.portrait-frame.is-dithered:hover .profile-picture {
-    opacity: 1;
-}
-
-.portrait-frame.is-dithered:hover .portrait-dither {
-    opacity: 0;
 }
 
 .portrait figcaption {
-    display: flex;
-    justify-content: space-between;
     margin-top: 16px;
 
     font-family: var(--mono);
@@ -458,12 +433,6 @@ nav {
 
 /* ABOUT */
 
-.about-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 250px;
-    gap: 64px;
-}
-
 .about-body p {
     max-width: 640px;
     margin-bottom: 20px;
@@ -476,43 +445,6 @@ nav {
     line-height: 1.45;
     letter-spacing: -0.01em;
     color: var(--fg);
-}
-
-.marginalia {
-    align-self: start;
-    padding-top: 14px;
-    border-top: 1px solid var(--fg);
-
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.marginalia-title {
-    margin-bottom: 10px;
-    color: var(--faint);
-}
-
-.marginalia dl {
-    margin-bottom: 28px;
-}
-
-.marginalia dl div {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 7px 0;
-    border-bottom: 1px dashed var(--line-strong);
-}
-
-.marginalia dt {
-    color: var(--faint);
-}
-
-.marginalia dd {
-    color: var(--fg);
-    text-align: right;
 }
 
 
@@ -978,19 +910,6 @@ main:not(.score) {
 
 /* MOBILE */
 
-@media (max-width: 860px) {
-
-    .about-grid {
-        grid-template-columns: 1fr;
-        gap: 40px;
-    }
-
-    .marginalia {
-        max-width: 420px;
-    }
-
-}
-
 @media (max-width: 700px) {
 
     :root {
@@ -1098,15 +1017,10 @@ main:not(.score) {
     .glyph,
     .rule,
     .timeline,
-    .portrait-dither,
     .portrait-frame::after,
     .scroll-readout,
     .footer-seed {
         display: none !important;
-    }
-
-    .portrait-frame.is-dithered .profile-picture {
-        opacity: 1;
     }
 
 }
