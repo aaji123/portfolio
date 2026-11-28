@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-28T00:00:00Z",
+  "title": "Design System: Light Novel, Volume 1",
+  "extensions": {
+    "colorMeta": {
+      "cloth": { "role": "primary", "displayName": "Book-Cloth Cobalt", "canonical": "#2335e8", "tonalRamp": ["oklch(15% 0.06 266)", "oklch(27% 0.14 266)", "oklch(39% 0.21 266)", "oklch(48% 0.25 266)", "oklch(60% 0.19 266)", "oklch(72% 0.13 266)", "oklch(84% 0.07 266)", "oklch(95% 0.02 266)"] },
+      "cloth-deep": { "role": "primary", "displayName": "Spine Cobalt", "canonical": "#1a27b0", "tonalRamp": ["oklch(15% 0.06 266)", "oklch(27% 0.13 266)", "oklch(38% 0.2 266)", "oklch(50% 0.2 266)", "oklch(62% 0.16 266)", "oklch(74% 0.11 266)", "oklch(85% 0.06 266)", "oklch(95% 0.02 266)"] },
+      "magenta": { "role": "secondary", "displayName": "Colour-Insert Magenta", "canonical": "#ff2d7a", "tonalRamp": ["oklch(15% 0.05 8)", "oklch(27% 0.1 8)", "oklch(39% 0.15 8)", "oklch(51% 0.2 8)", "oklch(64% 0.24 8)", "oklch(75% 0.16 8)", "oklch(85% 0.09 8)", "oklch(95% 0.03 8)"] },
+      "paper": { "role": "neutral", "displayName": "Cool Paper", "canonical": "#fbfaf6", "tonalRamp": ["oklch(15% 0.003 95)", "oklch(27% 0.004 95)", "oklch(39% 0.005 95)", "oklch(51% 0.006 95)", "oklch(63% 0.006 95)", "oklch(75% 0.006 95)", "oklch(87% 0.006 95)", "oklch(98.5% 0.005 95)"] },
+      "ink": { "role": "neutral", "displayName": "Print Ink", "canonical": "#121212", "tonalRamp": ["oklch(18% 0 0)", "oklch(27% 0 0)", "oklch(39% 0 0)", "oklch(51% 0 0)", "oklch(63% 0 0)", "oklch(75% 0 0)", "oklch(85% 0 0)", "oklch(95% 0 0)"] },
+      "ink-soft": { "role": "neutral", "displayName": "Soft Ink", "canonical": "#4a4a4a", "tonalRamp": ["oklch(15% 0 0)", "oklch(27% 0 0)", "oklch(41% 0 0)", "oklch(51% 0 0)", "oklch(63% 0 0)", "oklch(75% 0 0)", "oklch(85% 0 0)", "oklch(95% 0 0)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "\"I'm Aaron.\" on the title page." },
+      "opener": { "displayName": "Opener", "purpose": "The Projects chapter opener heading; the colophon's ':]' uses the same face larger." },
+      "headline": { "displayName": "Headline", "purpose": "Every page's h2." },
+      "long-title": { "displayName": "Long Title", "purpose": "The intro, set as the genre's long light-novel title between a 4px and a 1px ink rule." },
+      "afterword": { "displayName": "Afterword", "purpose": "Contact links on the afterword page." },
+      "title": { "displayName": "Title", "purpose": "Episode titles (education h3 runs slightly larger)." },
+      "episode-number": { "displayName": "Episode Number", "purpose": "01-08 beside each episode title." },
+      "balloon": { "displayName": "Balloon", "purpose": "Speech balloon on the colour insert." },
+      "folio": { "displayName": "Folio", "purpose": "Page numbers at the bottom outer corner." },
+      "page-mark": { "displayName": "Page Mark", "purpose": "Vertical Japanese genre marks (口絵, 目次, あとがき)." },
+      "body": { "displayName": "Body", "purpose": "Default text; project descriptions at 1.75, max 64ch." },
+      "prose": { "displayName": "Prose", "purpose": "About pages, indented paragraphs, max 64ch." },
+      "contents-entry": { "displayName": "Contents Entry", "purpose": "Chapter lines on the contents page; episodes at 400 15px." },
+      "button": { "displayName": "Button", "purpose": "Buttons, Reprint, project links." },
+      "tab": { "displayName": "Tab", "purpose": "Thumb-index tabs, uppercase, vertical on desktop." },
+      "running-head": { "displayName": "Running Head", "purpose": "Top-of-page running head, uppercase, ink-soft." },
+      "credit": { "displayName": "Credit", "purpose": "The stack line after each episode, ink-soft." }
+    },
+    "shadows": [
+      { "name": "page", "value": "0 26px 48px -22px rgba(0, 0, 0, 0.7)", "purpose": "Every page, lifting the book off the cloth." },
+      { "name": "spine", "value": "6px 0 24px rgba(0, 0, 0, 0.35)", "purpose": "The fixed spine over the cloth; removed at 1099px and below." },
+      { "name": "thumb-tab", "value": "4px 6px 16px -6px rgba(0, 0, 0, 0.6)", "purpose": "Fore-edge tabs; removed at 1099px and below." },
+      { "name": "insert-print", "value": "0 28px 44px -16px rgba(0, 0, 0, 0.75)", "purpose": "The photo print on the colour insert." },
+      { "name": "gutter-verso", "value": "linear-gradient(to left, rgba(18, 18, 18, 0.16), rgba(18, 18, 18, 0.04) 28px, rgba(18, 18, 18, 0) 72px)", "purpose": "Paper curving into the binding on a verso page (background-image)." },
+      { "name": "gutter-recto", "value": "linear-gradient(to right, rgba(18, 18, 18, 0.16), rgba(18, 18, 18, 0.04) 28px, rgba(18, 18, 18, 0) 72px)", "purpose": "Paper curving into the binding on a recto page (background-image)." },
+      { "name": "gutter-single", "value": "linear-gradient(to right, rgba(18, 18, 18, 0.1), rgba(18, 18, 18, 0) 18px)", "purpose": "Single-page gutter on one-column screens." },
+      { "name": "cloth-tone", "value": "radial-gradient(rgba(255, 255, 255, 0.09) 1.1px, transparent 1.6px) / 9px 9px", "purpose": "Fine white screentone over the cobalt body." },
+      { "name": "endpaper-tone", "value": "radial-gradient(rgba(251, 250, 246, 0.22) 1.6px, transparent 2.2px) / 11px 11px", "purpose": "Back endpaper dots over Spine Cobalt." },
+      { "name": "status-tone", "value": "radial-gradient(#121212 1.1px, transparent 1.5px) / 7px 7px, opacity 0.4, masked linear-gradient(transparent, #000)", "purpose": "Dot field fading up the bottom 42% of the skills page." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "The house easing (--ease-out): tab slide, afterword indent, page settle." },
+      { "name": "page-settle", "value": "settle 900ms var(--ease-out) 1", "purpose": "Gutter shadow sweeps from 100% width at full opacity to 20% at zero, once per page on first view (25% visible). Off under reduced motion." },
+      { "name": "tab-slide", "value": "transform 200ms var(--ease-out)", "purpose": "Thumb tab slides 4px outward on hover and when current." },
+      { "name": "afterword-indent", "value": "padding 200ms var(--ease-out)", "purpose": "Afterword link indents from 6px to 20px on hover/focus." },
+      { "name": "state-fill", "value": "background 150ms ease, color 150ms ease", "purpose": "Magenta hover fills on buttons, tabs and Reprint." }
+    ],
+    "breakpoints": [
+      { "name": "single-page", "value": "1099px" },
+      { "name": "phone", "value": "700px" },
+      { "name": "narrow", "value": "420px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Thumb-Index Tab",
+      "kind": "nav",
+      "refersTo": "thumb-tab",
+      "description": "Paper tabs on the book's fore-edge; the current chapter's tab fills magenta and slides out.",
+      "html": "<nav class=\"ds-tabs\"><a href=\"#about\">About</a><a href=\"#projects\" aria-current=\"true\">Projects</a><a href=\"#skills\">Skills</a><a href=\"#contact\">Contact</a></nav>",
+      "css": ".ds-tabs { display: flex; flex-direction: column; gap: 6px; padding: 16px; background: var(--cloth); align-items: flex-start; } .ds-tabs a { display: block; padding: 16px 9px; writing-mode: vertical-rl; background: var(--paper); color: var(--ink); text-decoration: none; border-radius: 0 6px 6px 0; box-shadow: 4px 6px 16px -6px rgba(0, 0, 0, 0.6); font-family: var(--text); font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; transition: transform 200ms var(--ease-out), background 150ms ease; } .ds-tabs a:hover, .ds-tabs a[aria-current=\"true\"] { background: var(--magenta); transform: translateX(4px); } .ds-tabs a:focus-visible { outline: 3px solid var(--paper); outline-offset: 3px; }"
+    },
+    {
+      "name": "Page with Running Head and Folio",
+      "kind": "card",
+      "refersTo": "page",
+      "description": "The unit of every surface: a recto page with gutter shading, running head, headline and folio.",
+      "html": "<section class=\"ds-page\"><span class=\"ds-running-head\">About</span><h2 class=\"ds-headline\">About</h2><p class=\"ds-prose\">I'm currently studying Computer Science at the University of Turku.</p><span class=\"ds-folio\">3</span></section>",
+      "css": ".ds-page { position: relative; padding: 64px 56px 76px 68px; background-color: var(--paper); background-image: linear-gradient(to right, rgba(18, 18, 18, 0.16), rgba(18, 18, 18, 0.04) 28px, rgba(18, 18, 18, 0) 72px); color: var(--ink); box-shadow: 0 26px 48px -22px rgba(0, 0, 0, 0.7); font-family: var(--text); } .ds-running-head { position: absolute; top: 26px; right: 56px; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); } .ds-folio { position: absolute; bottom: 26px; right: 56px; font-family: var(--display); font-size: 13px; letter-spacing: 0.04em; } .ds-headline { margin: 4px 0 32px; font-family: var(--display); font-size: 48px; font-weight: 400; line-height: 1; letter-spacing: -0.02em; } .ds-prose { max-width: 64ch; font-size: 16.5px; line-height: 1.9; }"
+    },
+    {
+      "name": "Speech Balloon",
+      "kind": "custom",
+      "refersTo": "speech-balloon",
+      "description": "The photo's line on the colour insert: an ink-outlined paper ellipse with a skewed wedge tail.",
+      "html": "<div class=\"ds-insert\"><p class=\"ds-balloon\">HELLO, WORLD!</p></div>",
+      "css": ".ds-insert { position: relative; padding: 40px 32px 56px; background: var(--magenta); } .ds-balloon { position: relative; display: inline-block; padding: 18px 28px 20px; background: var(--paper); border: 3px solid var(--ink); border-radius: 50%; transform: rotate(-4deg); font-family: var(--display); font-size: 22px; letter-spacing: 0.04em; line-height: 1; white-space: nowrap; color: var(--ink); } .ds-balloon::before, .ds-balloon::after { content: \"\"; position: absolute; right: 22%; border-style: solid; border-color: transparent; transform: skewX(-24deg); } .ds-balloon::before { bottom: -26px; border-width: 26px 0 0 18px; border-top-color: var(--ink); } .ds-balloon::after { bottom: -18px; right: calc(22% + 4px); border-width: 19px 0 0 12px; border-top-color: var(--paper); }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink-filled action on the title page and appendix; fills magenta on hover.",
+      "html": "<a href=\"#projects\" class=\"ds-btn-primary\">View my projects</a>",
+      "css": ".ds-btn-primary { display: inline-block; padding: 14px 20px; background: var(--ink); color: var(--paper); border: 2px solid var(--ink); text-decoration: none; font-family: var(--text); font-size: 14px; font-weight: 700; letter-spacing: 0.06em; transition: background 150ms ease, color 150ms ease; } .ds-btn-primary:hover { background: var(--magenta); color: var(--ink); } .ds-btn-primary:focus-visible { outline: 3px solid var(--magenta); outline-offset: 3px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ink-outlined companion action; fills magenta on hover.",
+      "html": "<a href=\"#contact\" class=\"ds-btn-secondary\">Contact me</a>",
+      "css": ".ds-btn-secondary { display: inline-block; padding: 14px 20px; background: transparent; color: var(--ink); border: 2px solid var(--ink); text-decoration: none; font-family: var(--text); font-size: 14px; font-weight: 700; letter-spacing: 0.06em; transition: background 150ms ease, color 150ms ease; } .ds-btn-secondary:hover { background: var(--magenta); } .ds-btn-secondary:focus-visible { outline: 3px solid var(--magenta); outline-offset: 3px; }"
+    },
+    {
+      "name": "Contents with Leaders",
+      "kind": "nav",
+      "refersTo": "contents-entry",
+      "description": "Contents entries with dotted leaders to display-face page numbers; nested episodes.",
+      "html": "<ol class=\"ds-contents\"><li><a href=\"#about\"><span>About</span><span class=\"ds-leader\"></span><span class=\"ds-pg\">3</span></a></li><li><a href=\"#projects\"><span>Projects</span><span class=\"ds-leader\"></span><span class=\"ds-pg\">6</span></a><ol class=\"ds-episodes\"><li><a href=\"#ficlet\"><span>Ficlet</span><span class=\"ds-leader\"></span><span class=\"ds-pg\">7</span></a></li></ol></li></ol>",
+      "css": ".ds-contents, .ds-episodes { list-style: none; margin: 0; padding: 0; font-family: var(--text); color: var(--ink); } .ds-contents a { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; color: inherit; text-decoration: none; } .ds-contents > li > a { font-size: 18px; font-weight: 700; } .ds-episodes { margin: 2px 0 8px 22px; } .ds-episodes a { padding: 3px 0; font-size: 15px; font-weight: 400; } .ds-leader { flex: 1; min-width: 24px; border-bottom: 2px dotted var(--ink-soft); transform: translateY(-5px); } .ds-pg { min-width: 2ch; text-align: right; font-family: var(--display); font-size: 14px; font-variant-numeric: tabular-nums; } .ds-contents a:hover span:first-child { background: var(--magenta); } .ds-contents a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 3px; }"
+    },
+    {
+      "name": "Status Window",
+      "kind": "card",
+      "refersTo": "status-window",
+      "description": "Skills in a double-ruled box with bracketed group headings and slash-separated entries.",
+      "html": "<div class=\"ds-status\"><div class=\"ds-status-group\"><h3>Languages</h3><ul class=\"ds-tags\"><li>Java</li><li>C++</li><li>Luau</li></ul></div><div class=\"ds-status-group\"><h3>Currently learning</h3><ul class=\"ds-tags\"><li>Unreal Engine</li><li>Game development</li></ul></div></div>",
+      "css": ".ds-status { padding: 26px 26px 28px; background: var(--paper); border: 6px double var(--ink); color: var(--ink); font-family: var(--text); } .ds-status-group + .ds-status-group { margin-top: 22px; padding-top: 20px; border-top: 1px dashed var(--ink); } .ds-status-group h3 { margin: 0 0 10px; font-size: 15px; font-weight: 700; letter-spacing: 0.04em; } .ds-status-group h3::before { content: \"【\"; } .ds-status-group h3::after { content: \"】\"; } .ds-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; row-gap: 4px; font-size: 16px; } .ds-tags li:not(:last-child)::after { content: \"／\"; margin: 0 0.45em; color: var(--ink-soft); }"
+    },
+    {
+      "name": "Episode Lockup",
+      "kind": "custom",
+      "refersTo": "plate",
+      "description": "A project page: plate frame, episode number and title on one baseline, description, credit line and underlined links.",
+      "html": "<article class=\"ds-episode\"><div class=\"ds-plate\"></div><div class=\"ds-ep-head\"><span class=\"ds-ep-number\">01</span><h3>Ficlet</h3></div><p>A fantasy-romance story generator.</p><p class=\"ds-ep-stack\">Next.js / TypeScript</p><div class=\"ds-ep-links\"><a href=\"#\">GitHub →</a></div></article>",
+      "css": ".ds-episode { padding: 32px; background: var(--paper); color: var(--ink); font-family: var(--text); } .ds-plate { width: 100%; aspect-ratio: 4 / 3; margin: 0 0 26px; background: radial-gradient(var(--ink) 1.1px, transparent 1.5px) 0 0 / 7px 7px, var(--paper); border: 2px solid var(--ink); } .ds-ep-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px; } .ds-ep-number { flex: none; font-family: var(--display); font-size: 44px; line-height: 1; } .ds-ep-head h3 { margin: 0; font-family: var(--display); font-size: 32px; font-weight: 400; line-height: 1.15; } .ds-episode p { max-width: 64ch; font-size: 16px; line-height: 1.75; margin: 0; } .ds-episode .ds-ep-stack { margin-top: 14px; font-size: 13px; letter-spacing: 0.04em; color: var(--ink-soft); } .ds-ep-links { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 14px; font-weight: 700; letter-spacing: 0.04em; } .ds-ep-links a { padding: 2px 0; color: inherit; text-decoration: none; border-bottom: 2px solid var(--ink); } .ds-ep-links a:hover { background: var(--magenta); } .ds-ep-links a:focus-visible { outline: 3px solid var(--magenta); outline-offset: 3px; }"
+    },
+    {
+      "name": "Afterword Links",
+      "kind": "nav",
+      "refersTo": "afterword-link",
+      "description": "Contact as the afterword: large display links between ink rules that fill magenta and indent on hover or focus.",
+      "html": "<div class=\"ds-afterword\"><a href=\"#\">GitHub</a><a href=\"#\">LinkedIn</a><a href=\"#\">Email</a><a href=\"#\">Discord</a><span>Discord Username: aaji</span></div>",
+      "css": ".ds-afterword { display: flex; flex-direction: column; border-top: 4px solid var(--ink); background: var(--paper); color: var(--ink); } .ds-afterword a { padding: 12px 6px; border-bottom: 1px solid var(--ink); color: inherit; text-decoration: none; font-family: var(--display); font-size: 44px; line-height: 1.15; transition: background 150ms ease, padding 200ms var(--ease-out); } .ds-afterword a:hover, .ds-afterword a:focus-visible { padding-left: 20px; background: var(--magenta); outline: none; } .ds-afterword span { padding-top: 16px; font-family: var(--text); font-size: 15px; color: var(--ink-soft); }"
+    },
+    {
+      "name": "Colophon and Reprint",
+      "kind": "button",
+      "refersTo": "reprint",
+      "description": "The print-run record and the Reprint control that re-rolls the seed.",
+      "html": "<div class=\"ds-colophon-page\"><dl class=\"ds-colophon\"><div><dt>Print run</dt><dd>k3v9q2x</dd></div><div><dt>Printed</dt><dd>in your browser</dd></div></dl><button type=\"button\" class=\"ds-reprint\">Reprint</button></div>",
+      "css": ".ds-colophon-page { display: flex; flex-direction: column; padding: 32px; background: var(--paper); color: var(--ink); font-family: var(--text); } .ds-colophon { margin: 0; border-top: 4px solid var(--ink); font-size: 14px; } .ds-colophon div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--ink); } .ds-colophon dt { font-weight: 700; letter-spacing: 0.06em; } .ds-colophon dd { margin: 0; font-family: var(--display); text-align: right; } .ds-reprint { align-self: flex-start; margin-top: 22px; padding: 12px 18px; background: var(--paper); color: var(--ink); border: 2px solid var(--ink); font: inherit; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; cursor: pointer; transition: background 150ms ease; } .ds-reprint:hover { background: var(--magenta); } .ds-reprint:focus-visible { outline: 3px solid var(--magenta); outline-offset: 3px; }"
+    },
+    {
+      "name": "Pet Plate",
+      "kind": "card",
+      "refersTo": "pet-plate",
+      "description": "Appendix plate: two square views under one 2px ink frame, captioned in display type.",
+      "html": "<figure class=\"ds-pet\"><div class=\"ds-pet-images\"><div class=\"ds-pet-view\"></div><div class=\"ds-pet-view\"></div></div><figcaption><h3>Pet 01</h3></figcaption></figure>",
+      "css": ".ds-pet { margin: 0; max-width: 280px; color: var(--ink); } .ds-pet-images { display: grid; grid-template-columns: 1fr 1fr; border: 2px solid var(--ink); } .ds-pet-view { aspect-ratio: 1 / 1; background: var(--paper); } .ds-pet-view + .ds-pet-view { border-left: 2px solid var(--ink); } .ds-pet figcaption { margin-top: 8px; } .ds-pet h3 { margin: 0; font-family: var(--display); font-size: 15px; font-weight: 400; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Light Novel, Volume 1",
+    "overview": "The site is one open paperback lying on cobalt book cloth. Every surface is a page of that book: paper, black ink, screentone, and one hot magenta colour insert at the front. Nothing floats as a card or a panel; content sits on verso and recto pages that pair into spreads, each with its running head and folio, and the gutter darkens where the paper curves into the binding. Desktop shows one spread per viewport at the bunko ratio (1 : 1.41 per page); narrower screens show one page at a time and the spine becomes the top edge.\n\nThe vocabulary is the genre's own. The photo speaks in a manga speech balloon, the intro is set as the famously long light-novel title, the contents page runs dotted leaders to page numbers, skills live in a double-ruled 【bracketed】 status window, projects are numbered episodes each with a generated screentone illustration plate, contact is the afterword (あとがき), and the colophon records the print run. Vertical Japanese page marks (口絵, 目次, あとがき) label pages the way the genre does.\n\nThe press is seeded. Each visit draws a fresh seed that prints the colour insert's focus lines and every plate; Reprint rolls a new seed, writes it to the URL, and the colophon shows it as the print run. Motion is a single page-settle: a gutter shadow sweeps off each page once as it first enters view.",
+    "keyCharacteristics": [
+      "Paper pages on cobalt cloth; one open spread fills the first desktop viewport.",
+      "Ink and paper do all the work; magenta is a printed ground and a hover/active state, never a text colour.",
+      "Grey surfaces exist only as screentone dots and gutter shading.",
+      "Display type is Dela Gothic One; text is Zen Kaku Gothic New.",
+      "Every page carries book furniture: running head, folio, optional vertical page mark.",
+      "Seeded generative plates and focus lines, re-rollable with Reprint."
+    ],
+    "rules": [
+      { "name": "The Insert Rule", "body": "Magenta is ink-on-paper's only colour, and it appears as a printed ground or a state fill. It is never a text colour.", "section": "colors" },
+      { "name": "The Screentone Rule", "body": "Tone comes from dots, not from flat grey fills: cloth tone, endpaper tone, the status page's fading dot field (ink dots, 7px pitch, 40% opacity, masked top to bottom) and the plates themselves.", "section": "colors" },
+      { "name": "The Two Voices Rule", "body": "Display face for what a book would print large (titles, numbers, folios, marks, the balloon); text face for reading and controls. Never set paragraphs in Dela Gothic One.", "section": "typography" },
+      { "name": "The Container Scale Rule", "body": "Display sizes scale with the page (cqi on the page's inline-size container), not with the viewport, so type keeps its relation to the page at every size.", "section": "typography" },
+      { "name": "The Paper Object Rule", "body": "Shadows belong to physical objects (pages, spine, tabs, a print). Nothing inside a page casts a shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do put every new section on a verso or recto page with its running head and folio, so spreads stay paired.",
+      "Do keep ink text on paper or on magenta; use ink-soft only for secondary furniture and credits.",
+      "Do use magenta only as a ground or a state fill (hover, current tab, focus outline, selection).",
+      "Do draw new illustration from the seed, in ink on paper, inside a 2px ink frame.",
+      "Do shade with screentone dots or gutter gradients rather than flat grey.",
+      "Do scale display type with the page container (cqi clamps), not the viewport.",
+      "Do keep motion to the one page-settle and short state transitions (150–200ms, `cubic-bezier(0.16, 1, 0.3, 1)`), and turn both off under reduced motion."
+    ],
+    "donts": [
+      "Don't set any text in magenta.",
+      "Don't introduce grey fills, panels or cards; the only surfaces are paper, cloth and the magenta insert.",
+      "Don't round pages, frames, plates or buttons; curves belong to the thumb tabs and the speech balloon.",
+      "Don't let the focus lines or any effect cross the photo; the face stays clear.",
+      "Don't use `Math.random()` for anything drawn; every mark comes from the seed so a print run can be shared.",
+      "Don't set paragraphs in Dela Gothic One."
+    ]
+  }
+}

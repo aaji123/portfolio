@@ -1,35 +1,23 @@
 /*
- * SEED INSTRUMENT
+ * LIGHT NOVEL, VOLUME 1: the printing press.
  *
- * Every visit rolls one seed, unless the URL carries one (#s=<seed>). That
- * seed drives everything generated on the page: the hero banner, each project's sigil, the section rules, the favicon and the logo.
- * Math.random() is never used, so any seed can be reproduced from its link.
+ * Every visit is a new print run: one seed (or #s=<seed> from the URL) draws
+ * the colour insert's focus lines and every screentone illustration plate.
+ * "Reprint" rolls a new seed and writes it to the URL, so any print run can
+ * be shared. Math.random() is never used for anything drawn.
  *
- * Each part below checks for its own markup, so the file works on every page.
+ * Each part checks for its own markup, so the file works on every page.
  */
 (function () {
     "use strict";
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const INK = "#121212";
+    const PAPER = "#fbfaf6";
+    const MAGENTA = "#ff2d7a";
+    const CLOTH = "#2335e8";
     const MAX_SEED_LENGTH = 32;
-    const WHITE = 0xffffffff;   // canvas pixels are little-endian ABGR
-    const INK = 0xffe8e8e8;     // --fg
-
-    // 8x8 ordered dither: shapes dissolve pixel by pixel instead of going grey.
-    const BAYER = [
-         0, 32,  8, 40,  2, 34, 10, 42,
-        48, 16, 56, 24, 50, 18, 58, 26,
-        12, 44,  4, 36, 14, 46,  6, 38,
-        60, 28, 52, 20, 62, 30, 54, 22,
-         3, 35, 11, 43,  1, 33,  9, 41,
-        51, 19, 59, 27, 49, 17, 57, 25,
-        15, 47,  7, 39, 13, 45,  5, 37,
-        63, 31, 55, 23, 61, 29, 53, 21
-    ].map(function (n) { return (n + 2.5) / 68; });
-
-    function bayer(col, row) {
-        return BAYER[(row & 7) * 8 + (col & 7)];
-    }
+    const TAU = Math.PI * 2;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 
     /* ---------- seed ---------- */
@@ -53,6 +41,10 @@
         };
     }
 
+    function range(random, low, high) {
+        return low + random() * (high - low);
+    }
+
     // Returns null when the hash is not a seed (for example #about).
     function seedFromHash() {
         if (location.hash.indexOf("#s=") !== 0) return null;
@@ -68,7 +60,7 @@
     function writeSeedToHash(seed) {
         const hash = "#s=" + encodeURIComponent(seed);
         try {
-            history.replaceState(history.state, "", hash); // no history spam, no scroll
+            history.replaceState(history.state, "", hash);
         } catch (error) {
             location.replace(hash);
         }
@@ -80,900 +72,575 @@
     }
 
 
-    /* ---------- the flow field: shared by the banner, a sigil, favicon and OG ---------- */
+    /* ---------- canvas helpers ---------- */
 
-    function createIdentity(seed) {
-        const hash = fnv1a(seed);
-        const random = mulberry32(hash);
-        const baseAngle = random() * Math.PI * 2;
-        const waves = [];
-
-        for (let i = 0; i < 3; i++) {
-            const direction = random() * Math.PI * 2;
-            const frequency = (3.2 + random() * 3.2) * (1 + i * 0.7);
-            waves.push({
-                fx: Math.cos(direction) * frequency,
-                fy: Math.sin(direction) * frequency,
-                phase: random() * Math.PI * 2,
-                amplitude: (0.8 + random() * 0.7) / (1 + i * 0.6),
-                drift: (random() < 0.5 ? -1 : 1) * (0.25 + random() * 0.3)
-            });
-        }
-
-        return { seed: seed, hash: hash, baseAngle: baseAngle, waves: waves };
-    }
-
-    // u and v are centred and divided by the longer side, so every output size
-    // shows a crop of the same field. The drift is a bounded sway: it keeps the
-    // motion alive without ever turning into a different composition.
-    function fieldAngle(identity, u, v, sway) {
-        const w = identity.waves;
-        const a = Math.sin(u * w[0].fx + v * w[0].fy + w[0].phase + sway * w[0].drift);
-        const b = Math.cos(u * w[1].fx + v * w[1].fy + w[1].phase + sway * w[1].drift + a * 0.6);
-        const c = Math.sin(u * w[2].fx + v * w[2].fy + w[2].phase + sway * w[2].drift + b * 0.4);
-        return identity.baseAngle + a * w[0].amplitude + b * w[1].amplitude + c * w[2].amplitude;
-    }
-
-    const FADE = 0.965;     // trail brightness kept per step
-    const SPEED = 0.2;      // cells per step
-    const WARM_UP = 160;    // steps run before the first frame, so it starts full
-
-    function createField(identity, cols, rows) {
-        // Capped by area: one particle per 55 cells.
-        const count = Math.round(Math.min(1600, Math.max(14, cols * rows / 55)));
-        const extent = Math.max(cols, rows);
-        const random = mulberry32(identity.hash ^ 0x51ed270b);
-        const x = new Float64Array(count);
-        const y = new Float64Array(count);
-        const life = new Float64Array(count);
-        const light = new Float32Array(cols * rows);
-        let stepIndex = 0;
-
-        function spawn(i) {
-            x[i] = random() * cols;
-            y[i] = random() * rows;
-            life[i] = 140 + random() * 260;
-        }
-
-        for (let i = 0; i < count; i++) {
-            spawn(i);
-            life[i] *= random(); // stagger the first deaths
-        }
-
-        function step() {
-            const sway = Math.sin(stepIndex * 0.0021) * 2.2;
-            for (let i = 0; i < light.length; i++) light[i] *= FADE;
-            for (let i = 0; i < count; i++) {
-                const angle = fieldAngle(identity, (x[i] - cols / 2) / extent, (y[i] - rows / 2) / extent, sway);
-                x[i] += Math.cos(angle) * SPEED;
-                y[i] += Math.sin(angle) * SPEED;
-                life[i] -= 1;
-                if (life[i] <= 0 || x[i] < 0 || y[i] < 0 || x[i] >= cols || y[i] >= rows) spawn(i);
-                light[Math.floor(y[i]) * cols + Math.floor(x[i])] = 1;
-            }
-            stepIndex++;
-        }
-
-        // Lights a 3x3 brush along a line, in cell coordinates.
-        function brush(x0, y0, x1, y1) {
-            const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 2));
-            for (let i = 0; i <= n; i++) {
-                const cx = Math.floor(x0 + (x1 - x0) * i / n);
-                const cy = Math.floor(y0 + (y1 - y0) * i / n);
-                for (let dy = -1; dy <= 1; dy++) {
-                    for (let dx = -1; dx <= 1; dx++) {
-                        const px = cx + dx;
-                        const py = cy + dy;
-                        if (px >= 0 && py >= 0 && px < cols && py < rows) light[py * cols + px] = 1;
-                    }
-                }
-            }
-        }
-
-        for (let i = 0; i < WARM_UP; i++) step();
-
-        return {
-            cols: cols,
-            rows: rows,
-            count: count,
-            extent: extent,
-            light: light,
-            step: step,
-            brush: brush,
-            steps: function () { return stepIndex; }
-        };
-    }
-
-    // Each pixel is either lit or not drawn: the page's own black shows through.
-    function paintField(target, field, image, ink) {
-        const out = new Uint32Array(image.data.buffer);
-        for (let row = 0, i = 0; row < field.rows; row++) {
-            for (let col = 0; col < field.cols; col++, i++) {
-                out[i] = field.light[i] > bayer(col, row) ? ink : 0;
-            }
-        }
-        target.putImageData(image, 0, 0);
-    }
-
-
-    /* ---------- a shared loop for everything that animates ---------- */
-
-    const animations = new Set();
-    let frame = 0;
-
-    function loop(now) {
-        frame = requestAnimationFrame(loop);
-        animations.forEach(function (animation) { animation(now); });
-    }
-
-    function startAnimation(animation) {
-        animations.add(animation);
-        if (!frame && !document.hidden) frame = requestAnimationFrame(loop);
-    }
-
-    function stopAnimation(animation) {
-        animations.delete(animation);
-        if (!animations.size && frame) {
-            cancelAnimationFrame(frame);
-            frame = 0;
-        }
-    }
-
-    document.addEventListener("visibilitychange", function () {
-        if (document.hidden && frame) {
-            cancelAnimationFrame(frame);
-            frame = 0;
-        } else if (!document.hidden && animations.size && !frame) {
-            frame = requestAnimationFrame(loop);
-        }
-    });
-
-    function debounce(callback, delay) {
-        let timer = 0;
-        return function () {
-            clearTimeout(timer);
-            timer = setTimeout(callback, delay);
-        };
-    }
-
-    // Runs callback() after the element's size really changes (debounced).
-    // The first draw is the caller's job.
-    function watchSize(element, callback) {
-        let last = element.clientWidth + "x" + element.clientHeight;
-        const check = debounce(function () {
-            const key = element.clientWidth + "x" + element.clientHeight;
-            if (key === last || !element.clientWidth) return;
-            last = key;
-            callback();
-        }, 150);
-        new ResizeObserver(check).observe(element);
-    }
-
-    function pixels(canvas, cols, rows) {
-        canvas.width = cols;
-        canvas.height = rows;
+    // Sizes a canvas to its CSS box at device resolution and returns a context
+    // that draws in CSS pixels, or null while the canvas has no size.
+    function prepare(canvas) {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        if (!w || !h) return null;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
         const ctx = canvas.getContext("2d");
-        const image = ctx.createImageData(cols, rows);
-        return { ctx: ctx, image: image, out: new Uint32Array(image.data.buffer) };
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { ctx: ctx, w: w, h: h };
+    }
+
+    // A tapered stroke, wide at `to` and pointed at `from`: one manga speed line.
+    function wedge(ctx, x0, y0, x1, y1, width) {
+        const dx = x1 - x0;
+        const dy = y1 - y0;
+        const length = Math.hypot(dx, dy) || 1;
+        const nx = -dy / length * width / 2;
+        const ny = dx / length * width / 2;
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1 + nx, y1 + ny);
+        ctx.lineTo(x1 - nx, y1 - ny);
+        ctx.closePath();
+    }
+
+    // A line tapered at both ends.
+    function needle(ctx, x0, y0, x1, y1, width) {
+        const mx = (x0 + x1) / 2;
+        const my = (y0 + y1) / 2;
+        const dx = x1 - x0;
+        const dy = y1 - y0;
+        const length = Math.hypot(dx, dy) || 1;
+        const nx = -dy / length * width / 2;
+        const ny = dx / length * width / 2;
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(mx + nx, my + ny);
+        ctx.lineTo(x1, y1);
+        ctx.lineTo(mx - nx, my - ny);
+        ctx.closePath();
+    }
+
+    function sparkle(ctx, x, y, r) {
+        ctx.moveTo(x, y - r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.quadraticCurveTo(x, y, x, y + r);
+        ctx.quadraticCurveTo(x, y, x - r, y);
+        ctx.quadraticCurveTo(x, y, x, y - r);
+        ctx.closePath();
     }
 
 
-    /* ---------- banner: the flow field behind the hero ---------- */
+    /* ---------- screentone plates: the volume's illustrations ---------- */
 
-    function createBanner() {
-        const hero = document.querySelector(".hero");
-        const layer = document.querySelector(".identity");
-        const canvas = document.querySelector(".identity-canvas");
-        const readout = document.querySelector(".readout-data");
-        if (!hero || !layer || !canvas) return null;
+    // Each takes (ctx, w, h, random) and draws ink on paper.
+    const PLATES = {
 
-        const STEP_MS = 1000 / 60;
-        let identity = null;
-        let field = null;
-        let surface = null;
-        let cell = 6;
-        let onScreen = false;
-        let lastTime = 0;
-        let backlog = 0;
-        let pointer = null;
-
-        function build() {
-            const width = layer.clientWidth;
-            const height = layer.clientHeight;
-            if (!width || !height || !identity) return;
-            cell = width < 700 ? 4 : 6; // CSS pixels per art pixel
-            const cols = Math.ceil(width / cell);
-            const rows = Math.ceil(height / cell);
-            surface = pixels(canvas, cols, rows);
-            canvas.style.width = cols * cell + "px";
-            canvas.style.height = rows * cell + "px";
-            field = createField(identity, cols, rows);
-            paintField(surface.ctx, field, surface.image, WHITE);
-            report();
-            update();
-        }
-
-        function report() {
-            if (!readout || !field) return;
-            const degrees = Math.round((identity.baseAngle * 180 / Math.PI) % 360);
-            let text = "θ " + String(degrees).padStart(3, "0") + "°" +
-                "  n " + field.count +
-                "  t " + String(field.steps()).padStart(6, "0");
-            if (pointer) {
-                const u = (pointer.x - field.cols / 2) / field.extent;
-                const v = (pointer.y - field.rows / 2) / field.extent;
-                text += "  x " + (u < 0 ? "−" : "+") + Math.abs(u).toFixed(2) +
-                    " y " + (v < 0 ? "−" : "+") + Math.abs(v).toFixed(2);
+        // Ink streamlines following a seeded flow field.
+        flow: function (ctx, w, h, random) {
+            const waves = [];
+            for (let k = 0; k < 3; k++) {
+                const a = random() * TAU;
+                const f = range(random, 2.5, 6) * (1 + k * 0.6);
+                waves.push({ fx: Math.cos(a) * f, fy: Math.sin(a) * f, p: random() * TAU, amp: range(random, 0.7, 1.4) / (1 + k * 0.5) });
             }
-            readout.textContent = text;
-        }
-
-        function tick(now) {
-            // Fixed timestep: same speed and same sequence at 60, 90 or 120 Hz.
-            backlog += Math.min(now - lastTime, STEP_MS * 2);
-            lastTime = now;
-            let stepped = false;
-            while (backlog >= STEP_MS - 1) {
-                field.step();
-                backlog -= STEP_MS;
-                stepped = true;
-            }
-            if (!stepped) return;
-            paintField(surface.ctx, field, surface.image, WHITE);
-            if (field.steps() % 6 === 0) report();
-        }
-
-        function update() {
-            const shouldRun = onScreen && !reducedMotion.matches && field !== null;
-            if (shouldRun && !animations.has(tick)) {
-                lastTime = performance.now();
-                backlog = 0;
-                startAnimation(tick);
-            } else if (!shouldRun) {
-                stopAnimation(tick);
-            }
-        }
-
-        // The pointer draws into the field; the dither dissolves its trail.
-        hero.addEventListener("pointermove", function (event) {
-            if (!field || reducedMotion.matches) return;
-            const box = layer.getBoundingClientRect();
-            const next = { x: (event.clientX - box.left) / cell, y: (event.clientY - box.top) / cell };
-            if (pointer) field.brush(pointer.x, pointer.y, next.x, next.y);
-            pointer = next;
-        });
-        hero.addEventListener("pointerleave", function () {
-            pointer = null;
-        });
-
-        new IntersectionObserver(function (entries) {
-            onScreen = entries[entries.length - 1].isIntersecting;
-            update();
-        }).observe(layer);
-
-        reducedMotion.addEventListener("change", build);
-        watchSize(layer, build);
-
-        return {
-            setIdentity: function (next) {
-                identity = next;
-                build();
-            }
-        };
-    }
-
-
-    /* ---------- project sigils: seven 1-bit families, one per plate ---------- */
-
-    function seededRange(random, low, high) {
-        return low + random() * (high - low);
-    }
-
-    // Each family: init(cols, rows, random, seedText) -> state,
-    // draw(state, t, bits) fills bits with 0/1 for frame t.
-    const FAMILIES = [
-
-        // Flow: the banner's own field, at plate scale.
-        {
-            init: function (cols, rows, random, seedText) {
-                return { field: createField(createIdentity(seedText), cols, rows), shown: 0 };
-            },
-            draw: function (s, t, bits) {
-                while (s.shown < t) {
-                    s.field.step();
-                    s.shown++;
+            const base = random() * TAU;
+            const extent = Math.max(w, h);
+            const angle = function (x, y) {
+                const u = (x - w / 2) / extent;
+                const v = (y - h / 2) / extent;
+                let sum = base;
+                for (let k = 0; k < waves.length; k++) {
+                    sum += Math.sin(u * waves[k].fx + v * waves[k].fy + waves[k].p) * waves[k].amp;
                 }
-                for (let row = 0, i = 0; row < s.field.rows; row++) {
-                    for (let col = 0; col < s.field.cols; col++, i++) {
-                        bits[i] = s.field.light[i] > bayer(col, row) ? 1 : 0;
-                    }
-                }
-            }
-        },
-
-        // Automaton: an elementary cellular automaton scrolling upward.
-        {
-            init: function (cols, rows, random) {
-                const rules = [30, 45, 73, 86, 89, 105, 110, 124, 137, 150, 169, 193];
-                const rule = rules[Math.floor(random() * rules.length)];
-                const grid = new Uint8Array(cols * rows);
-                for (let x = 0; x < cols; x++) grid[x] = random() < 0.5 ? 1 : 0;
-                for (let y = 1; y < rows; y++) next(grid, cols, y, rule);
-                return { rule: rule, grid: grid, cols: cols, rows: rows, shown: 0 };
-
-                function next(g, c, y, r) {
-                    for (let x = 0; x < c; x++) {
-                        const left = g[(y - 1) * c + (x - 1 + c) % c];
-                        const mid = g[(y - 1) * c + x];
-                        const right = g[(y - 1) * c + (x + 1) % c];
-                        g[y * c + x] = (r >> (left * 4 + mid * 2 + right)) & 1;
-                    }
-                }
-            },
-            draw: function (s, t, bits) {
-                const c = s.cols;
-                while (s.shown < t) {
-                    s.grid.copyWithin(0, c);
-                    const y = s.rows - 1;
-                    for (let x = 0; x < c; x++) {
-                        const left = s.grid[(y - 1) * c + (x - 1 + c) % c];
-                        const mid = s.grid[(y - 1) * c + x];
-                        const right = s.grid[(y - 1) * c + (x + 1) % c];
-                        s.grid[y * c + x] = (s.rule >> (left * 4 + mid * 2 + right)) & 1;
-                    }
-                    s.shown++;
-                }
-                bits.set(s.grid);
-            }
-        },
-
-        // Désordre: nested squares whose disorder grows left to right.
-        {
-            init: function (cols, rows, random) {
-                const size = Math.max(8, Math.round(rows / 4));
-                const tiles = [];
-                for (let ty = 0; ty * size < rows; ty++) {
-                    for (let tx = 0; tx * size < cols; tx++) {
-                        const disorder = (tx * size / cols) * 2.4 + random() * 0.4;
-                        const rings = 1 + Math.floor(random() * 3);
-                        const corners = [];
-                        for (let k = 0; k < rings * 4 * 2; k++) corners.push(random() * Math.PI * 2);
-                        tiles.push({ x: tx * size, y: ty * size, disorder: disorder, rings: rings, corners: corners });
-                    }
-                }
-                return { tiles: tiles, size: size, cols: cols, rows: rows };
-            },
-            draw: function (s, t, bits) {
-                bits.fill(0);
-                const half = s.size / 2;
-                s.tiles.forEach(function (tile) {
-                    for (let r = 0; r < tile.rings; r++) {
-                        const reach = half * (r + 1) / (tile.rings + 0.6);
-                        const points = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(function (corner, k) {
-                            const phase = tile.corners[(r * 4 + k) * 2];
-                            const phase2 = tile.corners[(r * 4 + k) * 2 + 1];
-                            return [
-                                tile.x + half + corner[0] * reach + Math.sin(phase + t * 0.06) * tile.disorder,
-                                tile.y + half + corner[1] * reach + Math.cos(phase2 + t * 0.05) * tile.disorder
-                            ];
-                        });
-                        for (let k = 0; k < 4; k++) line(bits, s.cols, s.rows, points[k], points[(k + 1) % 4]);
-                    }
-                });
-            }
-        },
-
-        // Barcode: three bands of data drifting at their own speeds.
-        {
-            init: function (cols, rows, random) {
-                const bands = [];
-                let y = 0;
-                while (y < rows) {
-                    const height = Math.min(rows - y, Math.max(3, Math.round(seededRange(random, 0.15, 0.45) * rows)));
-                    const pattern = [];
-                    while (pattern.length < cols * 2) {
-                        const width = 1 + Math.floor(random() * random() * 6);
-                        const on = pattern.length === 0 ? 1 : 1 - pattern[pattern.length - 1];
-                        for (let w = 0; w < width; w++) pattern.push(on);
-                    }
-                    bands.push({ y: y, height: height, pattern: pattern, speed: seededRange(random, -1.4, 1.4) });
-                    y += height + 1; // one dark row between bands
-                }
-                return { bands: bands, cols: cols };
-            },
-            draw: function (s, t, bits) {
-                bits.fill(0);
-                s.bands.forEach(function (band) {
-                    const length = band.pattern.length;
-                    const offset = Math.floor(t * band.speed);
-                    for (let x = 0; x < s.cols; x++) {
-                        const on = band.pattern[(((x + offset) % length) + length) % length];
-                        if (!on) continue;
-                        for (let y = band.y; y < band.y + band.height; y++) bits[y * s.cols + x] = 1;
-                    }
-                });
-            }
-        },
-
-        // Moiré: two ring systems, one orbiting the other.
-        {
-            init: function (cols, rows, random) {
-                return {
-                    a: [random() * cols, random() * rows],
-                    b: [random() * cols, random() * rows],
-                    spacing: seededRange(random, 2.2, 4),
-                    orbit: seededRange(random, 3, 8),
-                    phase: random() * Math.PI * 2,
-                    cols: cols,
-                    rows: rows
-                };
-            },
-            draw: function (s, t, bits) {
-                const bx = s.b[0] + Math.cos(s.phase + t * 0.05) * s.orbit;
-                const by = s.b[1] + Math.sin(s.phase + t * 0.05) * s.orbit;
-                for (let y = 0, i = 0; y < s.rows; y++) {
-                    for (let x = 0; x < s.cols; x++, i++) {
-                        const ringA = Math.floor(Math.hypot(x - s.a[0], y - s.a[1]) / s.spacing);
-                        const ringB = Math.floor(Math.hypot(x - bx, y - by) / s.spacing);
-                        bits[i] = (ringA + ringB) & 1;
-                    }
-                }
-            }
-        },
-
-        // Truchet: quarter-circle tiles, flipping one by one.
-        {
-            init: function (cols, rows, random) {
-                const size = 8;
-                const across = Math.ceil(cols / size);
-                const down = Math.ceil(rows / size);
-                const orientation = new Uint8Array(across * down);
-                const phase = new Float32Array(across * down);
-                for (let i = 0; i < orientation.length; i++) {
-                    orientation[i] = random() < 0.5 ? 1 : 0;
-                    phase[i] = random() * 4;
-                }
-                return { size: size, across: across, orientation: orientation, phase: phase, cols: cols, rows: rows };
-            },
-            draw: function (s, t, bits) {
-                const size = s.size;
-                for (let y = 0, i = 0; y < s.rows; y++) {
-                    for (let x = 0; x < s.cols; x++, i++) {
-                        const tile = Math.floor(y / size) * s.across + Math.floor(x / size);
-                        const flip = s.orientation[tile] ^ (Math.floor(t * 0.04 + s.phase[tile]) & 1);
-                        const lx = (x % size) + 0.5;
-                        const ly = (y % size) + 0.5;
-                        const d = flip
-                            ? Math.min(Math.hypot(lx, ly), Math.hypot(size - lx, size - ly))
-                            : Math.min(Math.hypot(size - lx, ly), Math.hypot(lx, size - ly));
-                        bits[i] = Math.abs(d - size / 2) < 0.8 ? 1 : 0;
-                    }
-                }
-            }
-        },
-
-        // Contour: a height map drawn as topographic lines.
-        {
-            init: function (cols, rows, random) {
-                const waves = [];
-                for (let k = 0; k < 4; k++) {
-                    const angle = random() * Math.PI * 2;
-                    const frequency = seededRange(random, 2, 7);
-                    waves.push({
-                        fx: Math.cos(angle) * frequency / cols,
-                        fy: Math.sin(angle) * frequency / cols,
-                        phase: random() * Math.PI * 2,
-                        speed: seededRange(random, -0.03, 0.03)
-                    });
-                }
-                return { waves: waves, levels: seededRange(random, 2, 3.4), cols: cols, rows: rows };
-            },
-            draw: function (s, t, bits) {
-                for (let y = 0, i = 0; y < s.rows; y++) {
-                    for (let x = 0; x < s.cols; x++, i++) {
-                        let height = 0;
-                        for (let k = 0; k < s.waves.length; k++) {
-                            const w = s.waves[k];
-                            height += Math.sin(x * w.fx * Math.PI * 2 + y * w.fy * Math.PI * 2 + w.phase + t * w.speed);
-                        }
-                        const level = height * s.levels;
-                        bits[i] = level - Math.floor(level) < 0.16 ? 1 : 0;
-                    }
-                }
-            }
-        }
-    ];
-
-    function line(bits, cols, rows, from, to) {
-        const steps = Math.max(1, Math.ceil(Math.max(Math.abs(to[0] - from[0]), Math.abs(to[1] - from[1]))));
-        for (let k = 0; k <= steps; k++) {
-            const x = Math.round(from[0] + (to[0] - from[0]) * k / steps);
-            const y = Math.round(from[1] + (to[1] - from[1]) * k / steps);
-            if (x >= 0 && y >= 0 && x < cols && y < rows) bits[y * cols + x] = 1;
-        }
-    }
-
-    function createSigils() {
-        const plates = Array.from(document.querySelectorAll(".project"));
-        if (!plates.length) return null;
-        const BOOT_FRAMES = 45;
-        const FRAME_MS = 1000 / 30; // stepped, like the pixels
-        let identity = null;
-
-        const sigils = plates.map(function (plate, index) {
-            const canvas = plate.querySelector(".glyph");
-            const title = (plate.querySelector("h3") || {}).textContent || String(index);
-            if (!canvas) return null;
-            return {
-                plate: plate,
-                canvas: canvas,
-                title: title.trim(),
-                family: FAMILIES[index % FAMILIES.length],
-                state: null,
-                surface: null,
-                bits: null,
-                t: 0,
-                boot: 0,
-                hover: false,
-                seen: false,
-                last: 0
+                return sum;
             };
-        }).filter(Boolean);
-
-        function build(sigil) {
-            const cols = Math.max(16, Math.round(sigil.canvas.clientWidth / 4));
-            const rows = Math.max(8, Math.round(sigil.canvas.clientHeight / 4));
-            if (!sigil.canvas.clientWidth || !identity) return;
-            // The family belongs to the project; its parameters belong to the visit.
-            const seedText = sigil.title + "/" + identity.seed;
-            sigil.surface = pixels(sigil.canvas, cols, rows);
-            sigil.bits = new Uint8Array(cols * rows);
-            sigil.state = sigil.family.init(cols, rows, mulberry32(fnv1a(seedText)), seedText);
-            sigil.t = 0;
-            render(sigil);
-        }
-
-        function render(sigil) {
-            sigil.family.draw(sigil.state, sigil.t, sigil.bits);
-            const out = sigil.surface.out;
-            for (let i = 0; i < out.length; i++) out[i] = sigil.bits[i] ? INK : 0;
-            sigil.surface.ctx.putImageData(sigil.surface.image, 0, 0);
-        }
-
-        function animate(sigil) {
-            if (sigil.tick) return;
-            sigil.tick = function (now) {
-                if (now - sigil.last < FRAME_MS) return;
-                sigil.last = now;
-                sigil.t++;
-                render(sigil);
-                if (sigil.boot > 0) sigil.boot--;
-                if (!sigil.hover && sigil.boot === 0) {
-                    stopAnimation(sigil.tick);
-                    sigil.tick = null;
+            ctx.strokeStyle = INK;
+            ctx.lineCap = "round";
+            const lines = Math.round(w * h / 900);
+            for (let i = 0; i < lines; i++) {
+                let x = random() * w;
+                let y = random() * h;
+                ctx.lineWidth = range(random, 0.6, 2.6);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                const steps = 20 + Math.floor(random() * 50);
+                for (let s = 0; s < steps; s++) {
+                    const a = angle(x, y);
+                    x += Math.cos(a) * 2.2;
+                    y += Math.sin(a) * 2.2;
+                    ctx.lineTo(x, y);
                 }
-            };
-            startAnimation(sigil.tick);
+                ctx.stroke();
+            }
+        },
+
+        // Parallel speed lines with a clear band where the "subject" moves.
+        speed: function (ctx, w, h, random) {
+            const tilt = range(random, -0.35, 0.35);
+            const cos = Math.cos(tilt);
+            const sin = Math.sin(tilt);
+            const span = Math.hypot(w, h);
+            const band = range(random, 0.3, 0.7);
+            const bandWidth = range(random, 0.08, 0.2);
+            ctx.fillStyle = INK;
+            ctx.beginPath();
+            const count = Math.round(h * 1.4);
+            for (let i = 0; i < count; i++) {
+                const offset = (random() - 0.5) * span;
+                const across = offset / span + 0.5;
+                if (Math.abs(across - band) < bandWidth * random()) continue;
+                const length = span * range(random, 0.15, 0.9);
+                const start = (random() - 0.5) * span;
+                const cx = w / 2 + cos * start - sin * offset;
+                const cy = h / 2 + sin * start + cos * offset;
+                needle(ctx, cx, cy, cx + cos * length, cy + sin * length, range(random, 0.6, 3.2));
+            }
+            ctx.fill();
+        },
+
+        // Concentric dot rings, like a sound wave or a set-associative cache.
+        rings: function (ctx, w, h, random) {
+            const cx = range(random, 0.25, 0.75) * w;
+            const cy = range(random, 0.25, 0.75) * h;
+            const gap = range(random, 8, 13);
+            const freq = range(random, 0.15, 0.4);
+            const phase = random() * TAU;
+            const reach = Math.hypot(Math.max(cx, w - cx), Math.max(cy, h - cy));
+            ctx.fillStyle = INK;
+            ctx.beginPath();
+            for (let r = gap; r < reach; r += gap) {
+                const count = Math.max(6, Math.round(TAU * r / 7));
+                for (let k = 0; k < count; k++) {
+                    const a = k / count * TAU;
+                    const size = 2.6 * (0.5 + 0.5 * Math.sin(r * freq + Math.cos(a * 3 + phase) * 2));
+                    if (size < 0.35) continue;
+                    const x = cx + Math.cos(a) * r;
+                    const y = cy + Math.sin(a) * r;
+                    ctx.moveTo(x + size, y);
+                    ctx.arc(x, y, size, 0, TAU);
+                }
+            }
+            ctx.fill();
+        },
+
+        // Overlapping shapes, each filled with hatching at its own angle.
+        hatch: function (ctx, w, h, random) {
+            const shapes = 4 + Math.floor(random() * 4);
+            for (let s = 0; s < shapes; s++) {
+                const x = random() * w;
+                const y = random() * h;
+                const r = range(random, 0.12, 0.32) * Math.min(w, h) * 1.4;
+                const square = random() < 0.45;
+                ctx.save();
+                ctx.beginPath();
+                if (square) ctx.rect(x - r / 2, y - r / 2, r, r);
+                else ctx.arc(x, y, r / 2, 0, TAU);
+                ctx.fillStyle = PAPER;
+                ctx.fill();
+                ctx.clip();
+                const angle = random() * Math.PI;
+                const gap = range(random, 3.5, 7);
+                ctx.strokeStyle = INK;
+                ctx.lineWidth = range(random, 0.8, 1.6);
+                ctx.beginPath();
+                for (let d = -r * 1.5; d < r * 1.5; d += gap) {
+                    ctx.moveTo(x + Math.cos(angle) * -r * 2 - Math.sin(angle) * d, y + Math.sin(angle) * -r * 2 + Math.cos(angle) * d);
+                    ctx.lineTo(x + Math.cos(angle) * r * 2 - Math.sin(angle) * d, y + Math.sin(angle) * r * 2 + Math.cos(angle) * d);
+                }
+                ctx.stroke();
+                ctx.restore();
+                ctx.strokeStyle = INK;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                if (square) ctx.rect(x - r / 2, y - r / 2, r, r);
+                else ctx.arc(x, y, r / 2, 0, TAU);
+                ctx.stroke();
+            }
+        },
+
+        // Sand tone: stippled dots whose density drifts across the panel.
+        stipple: function (ctx, w, h, random) {
+            const fx = range(random, 1, 3) * TAU / w;
+            const fy = range(random, 1, 3) * TAU / h;
+            const p = random() * TAU;
+            ctx.fillStyle = INK;
+            ctx.beginPath();
+            const count = Math.round(w * h / 6);
+            for (let i = 0; i < count; i++) {
+                const x = random() * w;
+                const y = random() * h;
+                const density = 0.5 + 0.5 * Math.sin(x * fx + Math.cos(y * fy + p) * 2.2);
+                if (random() > density * density) continue;
+                const r = range(random, 0.5, 1.3);
+                ctx.moveTo(x + r, y);
+                ctx.arc(x, y, r, 0, TAU);
+            }
+            ctx.fill();
+        },
+
+        // A classic 45-degree dot screen grading from paper to solid ink.
+        halftone: function (ctx, w, h, random) {
+            const gap = range(random, 6, 9);
+            const cx = random() * w;
+            const cy = random() * h;
+            const dir = random() * TAU;
+            const reach = Math.hypot(w, h);
+            const sun = { x: range(random, 0.2, 0.8) * w, y: range(random, 0.2, 0.6) * h, r: range(random, 0.12, 0.22) * Math.min(w, h) };
+            ctx.fillStyle = INK;
+            ctx.beginPath();
+            const cos = Math.cos(Math.PI / 4);
+            for (let i = -reach; i < reach; i += gap) {
+                for (let j = -reach; j < reach; j += gap) {
+                    const x = w / 2 + (i - j) * cos;
+                    const y = h / 2 + (i + j) * cos;
+                    if (x < -gap || y < -gap || x > w + gap || y > h + gap) continue;
+                    if (Math.hypot(x - sun.x, y - sun.y) < sun.r + gap) continue;
+                    const along = ((x - cx) * Math.cos(dir) + (y - cy) * Math.sin(dir)) / reach + 0.5;
+                    const tone = Math.min(1, Math.max(0, along * 1.4 - 0.2));
+                    const r = gap * 0.52 * Math.sqrt(tone);
+                    if (r < 0.4) continue;
+                    ctx.moveTo(x + r, y);
+                    ctx.arc(x, y, r, 0, TAU);
+                }
+            }
+            ctx.fill();
+            ctx.strokeStyle = INK;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(sun.x, sun.y, sun.r, 0, TAU);
+            ctx.stroke();
+        },
+
+        // Focus lines: everything rushes toward one point.
+        focus: function (ctx, w, h, random) {
+            const cx = range(random, 0.35, 0.65) * w;
+            const cy = range(random, 0.35, 0.65) * h;
+            const hole = range(random, 0.14, 0.26) * Math.min(w, h);
+            const outer = Math.hypot(w, h);
+            ctx.fillStyle = INK;
+            ctx.beginPath();
+            const count = 170 + Math.floor(random() * 90);
+            for (let i = 0; i < count; i++) {
+                const a = random() * TAU;
+                const inner = hole * range(random, 1, 1.9);
+                wedge(ctx,
+                    cx + Math.cos(a) * inner, cy + Math.sin(a) * inner,
+                    cx + Math.cos(a) * outer, cy + Math.sin(a) * outer,
+                    range(random, 2, 9));
+            }
+            ctx.fill();
+        },
+
+        // Beta flash: solid ink with white spikes bursting from the centre.
+        flash: function (ctx, w, h, random) {
+            ctx.fillStyle = INK;
+            ctx.fillRect(0, 0, w, h);
+            const cx = range(random, 0.4, 0.6) * w;
+            const cy = range(random, 0.35, 0.55) * h;
+            const outer = Math.hypot(w, h) * 0.75;
+            ctx.fillStyle = PAPER;
+            ctx.beginPath();
+            const count = 90 + Math.floor(random() * 60);
+            for (let i = 0; i < count; i++) {
+                const a = random() * TAU;
+                const length = outer * range(random, 0.25, 1);
+                const width = range(random, 3, 14);
+                const nx = -Math.sin(a) * width / 2;
+                const ny = Math.cos(a) * width / 2;
+                ctx.moveTo(cx + nx, cy + ny);
+                ctx.lineTo(cx + Math.cos(a) * length, cy + Math.sin(a) * length);
+                ctx.lineTo(cx - nx, cy - ny);
+                ctx.closePath();
+            }
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(cx, cy, Math.min(w, h) * range(random, 0.06, 0.1), 0, TAU);
+            ctx.fill();
+        },
+
+        // Night sky: a toned gradient with four-point sparkles.
+        stars: function (ctx, w, h, random) {
+            const gap = 6;
+            ctx.fillStyle = INK;
+            ctx.beginPath();
+            const cos = Math.cos(Math.PI / 4);
+            const reach = Math.hypot(w, h);
+            for (let i = -reach; i < reach; i += gap) {
+                for (let j = -reach; j < reach; j += gap) {
+                    const x = w / 2 + (i - j) * cos;
+                    const y = h / 2 + (i + j) * cos;
+                    if (x < -gap || y < -gap || x > w + gap || y > h + gap) continue;
+                    const tone = 1 - y / h;
+                    const r = gap * 0.58 * Math.sqrt(Math.max(0, tone));
+                    if (r < 0.4) continue;
+                    ctx.moveTo(x + r, y);
+                    ctx.arc(x, y, r, 0, TAU);
+                }
+            }
+            ctx.fill();
+            const count = 10 + Math.floor(random() * 12);
+            for (let s = 0; s < count; s++) {
+                const x = random() * w;
+                const y = random() * h * 0.75;
+                const r = range(random, 4, 15);
+                ctx.beginPath();
+                sparkle(ctx, x, y, r + 3);
+                ctx.fillStyle = INK;
+                ctx.fill();
+                ctx.beginPath();
+                sparkle(ctx, x, y, r);
+                ctx.fillStyle = PAPER;
+                ctx.fill();
+            }
+        }
+    };
+
+    // The opener gets the flash; each episode keeps its own kind of plate.
+    const EPISODE_PLATES = ["flow", "speed", "rings", "hatch", "stipple", "halftone", "focus", "stars"];
+
+    function createPlates() {
+        const canvases = Array.from(document.querySelectorAll(".plate"));
+        if (!canvases.length) return null;
+        let seed = "";
+
+        const plates = canvases.map(function (canvas) {
+            let kind = "halftone";
+            let name = "plate";
+            if (canvas.classList.contains("plate--opener")) {
+                kind = "flash";
+                name = "opener";
+            } else {
+                const project = canvas.closest(".project");
+                if (project) {
+                    const all = Array.from(document.querySelectorAll(".project"));
+                    kind = EPISODE_PLATES[all.indexOf(project) % EPISODE_PLATES.length];
+                    name = project.id || kind;
+                } else {
+                    name = (canvas.closest("[id]") || {}).id || "plate";
+                }
+            }
+            return { canvas: canvas, kind: kind, name: name };
+        });
+
+        function draw(plate) {
+            const surface = prepare(plate.canvas);
+            if (!surface || !seed) return;
+            surface.ctx.fillStyle = PAPER;
+            surface.ctx.fillRect(0, 0, surface.w, surface.h);
+            PLATES[plate.kind](surface.ctx, surface.w, surface.h, mulberry32(fnv1a(seed + "/" + plate.name)));
         }
 
-        function play(sigil) {
-            if (reducedMotion.matches || !sigil.state) return;
-            animate(sigil);
-        }
-
-        const seen = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                const sigil = sigils.find(function (s) { return s.canvas === entry.target; });
-                if (!entry.isIntersecting || !sigil || sigil.seen) return;
-                sigil.seen = true;
-                sigil.boot = BOOT_FRAMES; // a short "power on" the first time it's seen
-                play(sigil);
-            });
-        }, { threshold: 0.4 });
-
-        sigils.forEach(function (sigil) {
-            const on = function () { sigil.hover = true; play(sigil); };
-            const off = function () { sigil.hover = false; };
-            sigil.plate.addEventListener("pointerenter", on);
-            sigil.plate.addEventListener("pointerleave", off);
-            sigil.plate.addEventListener("focusin", on);
-            sigil.plate.addEventListener("focusout", off);
-            watchSize(sigil.canvas, function () { build(sigil); });
-            seen.observe(sigil.canvas);
+        plates.forEach(function (plate) {
+            watchSize(plate.canvas, function () { draw(plate); });
         });
 
         return {
-            setIdentity: function (next) {
-                identity = next;
-                sigils.forEach(function (sigil) {
-                    build(sigil);
-                    if (sigil.seen) {
-                        sigil.boot = BOOT_FRAMES;
-                        play(sigil);
-                    }
-                });
+            print: function (nextSeed) {
+                seed = nextSeed;
+                plates.forEach(draw);
             }
         };
     }
 
 
-    /* ---------- rules: a strip of 1-bit noise under each section heading ---------- */
+    /* ---------- colour insert: cobalt and white focus lines around the photo ---------- */
 
-    function createRules() {
-        const rules = Array.from(document.querySelectorAll(".rule"));
-        if (!rules.length) return null;
-        let identity = null;
-
-        function draw(canvas, index) {
-            const cols = Math.round(canvas.clientWidth / 3);
-            const rows = 3;
-            if (!cols || !identity) return;
-            const random = mulberry32(identity.hash ^ Math.imul(index + 1, 0x9e3779b1));
-            const surface = pixels(canvas, cols, rows);
-            const lobes = 1 + Math.floor(random() * 3);
-            const phase = random() * Math.PI * 2;
-            const tilt = random() < 0.5 ? -1 : 1;
-            for (let x = 0; x < cols; x++) {
-                const along = x / cols;
-                const density = 0.05 + 0.75 * Math.pow(Math.sin(along * Math.PI * lobes + phase) * 0.5 + 0.5, 3) *
-                    (tilt > 0 ? along : 1 - along);
-                for (let y = 0; y < rows; y++) {
-                    surface.out[y * cols + x] = random() < density ? INK : 0;
-                }
-            }
-            surface.ctx.putImageData(surface.image, 0, 0);
-        }
-
-        rules.forEach(function (canvas, index) {
-            watchSize(canvas, function () { draw(canvas, index); });
-        });
-
-        return {
-            setIdentity: function (next) {
-                identity = next;
-                rules.forEach(draw);
-            }
-        };
-    }
-
-
-    /* ---------- skills: a barcode for every word, from its own letters ---------- */
-
-    function createBarcodes() {
-        document.querySelectorAll(".tags li").forEach(function (item) {
-            const random = mulberry32(fnv1a(item.textContent.trim()));
-            const stops = [];
-            let x = 0;
-            let on = true;
-            while (x < 240) {
-                const width = 1 + Math.floor(random() * random() * 5);
-                const color = on ? "#e8e8e8" : "transparent";
-                stops.push(color + " " + x + "px " + (x + width) + "px");
-                x += width;
-                on = !on;
-            }
-            item.style.setProperty("--code", "linear-gradient(90deg, " + stops.join(", ") + ")");
-        });
-    }
-
-
-    /* ---------- education: 2024 to now, as a pixel line ---------- */
-
-    function createTimeline() {
-        const canvas = document.querySelector(".timeline-canvas");
-        const labels = document.querySelector(".timeline-labels");
-        if (!canvas || !labels) return;
-        const START = 2024;
+    function createInsert() {
+        const canvas = document.querySelector(".focus-lines");
+        const photo = document.querySelector(".insert-photo");
+        if (!canvas || !photo) return null;
+        let seed = "";
 
         function draw() {
-            const cols = Math.round(canvas.clientWidth / 3);
-            const rows = 3;
-            if (!cols) return;
-            const now = new Date();
-            const nowYears = now.getFullYear() + (now.getMonth() + now.getDate() / 31) / 12;
-            const end = nowYears + 0.35; // headroom: the line keeps going
-            const at = function (year) { return (year - START) / (end - START); };
-            const nowCol = Math.round(at(nowYears) * (cols - 1));
-            const surface = pixels(canvas, cols, rows);
+            const surface = prepare(canvas);
+            if (!surface || !seed) return;
+            const ctx = surface.ctx;
+            const random = mulberry32(fnv1a(seed + "/insert"));
+            const box = canvas.getBoundingClientRect();
+            const frame = photo.getBoundingClientRect();
+            const cx = frame.left + frame.width / 2 - box.left;
+            const cy = frame.top + frame.height / 2 - box.top;
+            const halfW = frame.width / 2 + 14;
+            const halfH = frame.height / 2 + 14;
+            const outer = Math.hypot(surface.w, surface.h);
 
-            for (let x = 0; x < cols; x++) {
-                const past = x <= nowCol;
-                surface.out[cols + x] = past || x % 3 === 0 ? INK : 0; // middle row
+            ctx.fillStyle = MAGENTA;
+            ctx.fillRect(0, 0, surface.w, surface.h);
+
+            // Lines start where a ray from the centre leaves the photo, never on it.
+            function edge(a) {
+                const dx = Math.abs(Math.cos(a)) || 1e-6;
+                const dy = Math.abs(Math.sin(a)) || 1e-6;
+                return Math.min(halfW / dx, halfH / dy);
             }
-            labels.textContent = "";
-            for (let year = START; year <= Math.floor(nowYears); year++) {
-                const col = Math.round(at(year) * (cols - 1));
-                for (let y = 0; y < rows; y++) surface.out[y * cols + col] = INK;
-                const label = document.createElement("span");
-                label.textContent = String(year);
-                label.style.left = (col * 3) + "px";
-                if (at(nowYears) - at(year) > 0.12) labels.appendChild(label);
-            }
-            for (let y = 0; y < rows; y++) {
-                for (let dx = -1; dx <= 1; dx++) {
-                    const x = nowCol + dx;
-                    if (x >= 0 && x < cols) surface.out[y * cols + x] = INK;
+
+            [[CLOTH, 220, 3, 12], [PAPER, 130, 1.2, 5]].forEach(function (layer) {
+                ctx.fillStyle = layer[0];
+                ctx.beginPath();
+                for (let i = 0; i < layer[1]; i++) {
+                    const a = random() * TAU;
+                    const inner = edge(a) + range(random, 6, 90);
+                    wedge(ctx,
+                        cx + Math.cos(a) * inner, cy + Math.sin(a) * inner,
+                        cx + Math.cos(a) * outer, cy + Math.sin(a) * outer,
+                        range(random, layer[2], layer[3]));
                 }
-            }
-            surface.ctx.putImageData(surface.image, 0, 0);
-            const marker = document.createElement("span");
-            marker.className = "now";
-            marker.textContent = "Now";
-            marker.style.left = ((nowCol + 2) * 3) + "px";
-            labels.appendChild(marker);
+                ctx.fill();
+            });
         }
 
         watchSize(canvas, draw);
-        draw();
+
+        return {
+            print: function (nextSeed) {
+                seed = nextSeed;
+                draw();
+            }
+        };
     }
 
 
-    /* ---------- where am I: section index and scroll position ---------- */
+    /* ---------- favicon: a tiny colour insert ---------- */
 
-    function createScrollReadout() {
-        const box = document.querySelector(".scroll-readout");
-        const sections = Array.from(document.querySelectorAll(".section"));
-        if (!box || !sections.length) return;
-        let current = "00 Seed";
-        let pending = false;
+    function updateFavicon(seed) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext("2d");
+        const random = mulberry32(fnv1a(seed + "/favicon"));
+        ctx.fillStyle = CLOTH;
+        ctx.fillRect(0, 0, 32, 32);
+        ctx.fillStyle = MAGENTA;
+        ctx.beginPath();
+        for (let i = 0; i < 26; i++) {
+            const a = random() * TAU;
+            wedge(ctx, 16 + Math.cos(a) * 7, 16 + Math.sin(a) * 7, 16 + Math.cos(a) * 24, 16 + Math.sin(a) * 24, range(random, 2, 4));
+        }
+        ctx.fill();
+        ctx.fillStyle = PAPER;
+        ctx.fillRect(11, 9, 10, 14);
 
-        function render() {
-            pending = false;
-            const max = document.documentElement.scrollHeight - innerHeight;
-            const percent = max > 0 ? Math.round(scrollY / max * 100) : 0;
-            box.textContent = "§" + current + "  ·  " + String(percent).padStart(3, "0") + "%";
+        let link = document.head.querySelector("link[rel='icon']");
+        if (!link) {
+            link = document.createElement("link");
+            link.rel = "icon";
+            document.head.appendChild(link);
+        }
+        link.type = "image/png";
+        link.href = canvas.toDataURL("image/png");
+    }
+
+
+    /* ---------- turning pages and finding your place ---------- */
+
+    function watchSize(element, callback) {
+        let last = element.clientWidth + "x" + element.clientHeight;
+        let timer = 0;
+        new ResizeObserver(function () {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                const key = element.clientWidth + "x" + element.clientHeight;
+                if (key === last || !element.clientWidth) return;
+                last = key;
+                callback();
+            }, 150);
+        }).observe(element);
+    }
+
+    // The first time a page comes into view, its gutter shadow lifts once.
+    function watchPageTurns() {
+        if (reducedMotion.matches) return;
+        const observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add("is-turned");
+                observer.unobserve(entry.target);
+            });
+        }, { threshold: 0.25 });
+        document.querySelectorAll(".page").forEach(function (page) {
+            observer.observe(page);
+        });
+    }
+
+    // The thumb tab for the chapter you are reading sticks out further.
+    function watchCurrentTab() {
+        const tabs = Array.from(document.querySelectorAll(".nav-links a[href^='#']"));
+        const targets = tabs.map(function (tab) {
+            return document.getElementById(tab.getAttribute("href").slice(1));
+        });
+        if (!tabs.length || targets.some(function (t) { return !t; })) return;
+
+        // A tab stays current until the next tab's chapter starts.
+        const starts = [
+            [document.getElementById("about"), 0],
+            [document.getElementById("skills"), 2],
+            [document.getElementById("education"), 2],
+            [document.getElementById("projects"), 1],
+            [document.getElementById("contact"), 3]
+        ].filter(function (pair) { return pair[0]; });
+
+        function update() {
+            const line = window.innerHeight * 0.4;
+            let current = -1;
+            starts.forEach(function (pair) {
+                if (pair[0].getBoundingClientRect().top <= line) current = pair[1];
+            });
+            tabs.forEach(function (tab, index) {
+                if (index === current) tab.setAttribute("aria-current", "true");
+                else tab.removeAttribute("aria-current");
+            });
         }
 
-        const watcher = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (entry.isIntersecting) {
-                    const index = entry.target.querySelector(".idx");
-                    const heading = entry.target.querySelector("h2");
-                    current = (index ? index.textContent : "") + " " + (heading ? heading.textContent : "");
-                } else if (entry.target === sections[0] && entry.boundingClientRect.top > 0) {
-                    current = "00 Seed";
-                }
-            });
-            render();
-        }, { rootMargin: "-45% 0px -50% 0px" });
-        sections.forEach(function (section) { watcher.observe(section); });
-
+        let pending = false;
         window.addEventListener("scroll", function () {
             if (pending) return;
             pending = true;
-            requestAnimationFrame(render);
-        }, { passive: true });
-
-        box.hidden = false;
-        render();
-    }
-
-
-    /* ---------- favicon, logo sigil and OG image: white pixels on black ---------- */
-
-    function renderTile(identity, w, h, cell) {
-        const small = document.createElement("canvas");
-        const cols = Math.ceil(w / cell);
-        const rows = Math.ceil(h / cell);
-        const surface = pixels(small, cols, rows);
-        paintField(surface.ctx, createField(identity, cols, rows), surface.image, WHITE);
-
-        const tile = document.createElement("canvas");
-        tile.width = w;
-        tile.height = h;
-        const tileCtx = tile.getContext("2d");
-        tileCtx.fillStyle = "#000";
-        tileCtx.fillRect(0, 0, w, h);
-        tileCtx.imageSmoothingEnabled = false;
-        tileCtx.drawImage(small, 0, 0, cols * cell, rows * cell);
-        return tile;
-    }
-
-    function headElement(selector, tag, attributes) {
-        let element = document.head.querySelector(selector);
-        if (!element) {
-            element = document.createElement(tag);
-            document.head.appendChild(element);
-        }
-        Object.keys(attributes).forEach(function (key) {
-            element.setAttribute(key, attributes[key]);
-        });
-    }
-
-    function updateMarks(identity) {
-        const icon = renderTile(identity, 32, 32, 2);
-        headElement("link[rel='icon']", "link", {
-            rel: "icon",
-            type: "image/png",
-            sizes: "32x32",
-            href: icon.toDataURL("image/png")
-        });
-        const sigil = document.querySelector(".sigil");
-        if (sigil) {
-            const ctx = sigil.getContext("2d");
-            ctx.imageSmoothingEnabled = false;
-            ctx.drawImage(icon, 0, 0, 16, 16);
-        }
-    }
-
-    let ogTimer = 0;
-    const whenIdle = window.requestIdleCallback
-        ? function (callback) { window.requestIdleCallback(callback, { timeout: 4000 }); }
-        : function (callback) { setTimeout(callback, 200); };
-
-    // Deferred, so it never competes with loading or rolling.
-    function scheduleOgImage(identity) {
-        clearTimeout(ogTimer);
-        ogTimer = setTimeout(function () {
-            whenIdle(function () {
-                if (identity !== current) return; // rolled again meanwhile
-                const tags = {
-                    "og:image": renderTile(identity, 1200, 630, 6).toDataURL("image/png"),
-                    "og:image:type": "image/png",
-                    "og:image:width": "1200",
-                    "og:image:height": "630"
-                };
-                Object.keys(tags).forEach(function (name) {
-                    // Separate tags: the static og:image in the page stays
-                    // first, because crawlers can't use a data URL.
-                    headElement("meta[data-identity='" + name + "']", "meta", {
-                        "data-identity": name,
-                        property: name,
-                        content: tags[name]
-                    });
-                });
+            requestAnimationFrame(function () {
+                pending = false;
+                update();
             });
-        }, 800);
+        }, { passive: true });
+        update();
     }
 
 
     /* ---------- wiring ---------- */
 
-    const parts = [createBanner(), createSigils(), createRules()].filter(Boolean);
+    const presses = [createInsert(), createPlates()].filter(Boolean);
     const seedLabel = document.querySelector(".identity-seed");
-    const footerSeed = document.querySelector(".footer-seed");
-    const rollButton = document.querySelector(".identity-roll");
-    const readout = document.querySelector(".readout");
-    const headline = document.querySelector(".hero h1");
-    let current = null;
+    const colophon = document.querySelector(".colophon");
+    const reprint = document.querySelector(".reprint");
+    let current = "";
 
-    function applySeed(seed) {
-        if (current && current.seed === seed) return;
-        current = createIdentity(seed);
-        if (seedLabel) seedLabel.textContent = "Seed: " + seed;
-        if (footerSeed) {
-            footerSeed.textContent = "Seed " + seed + " · rendered in your browser";
-            footerSeed.hidden = false;
-        }
-        parts.forEach(function (part) { part.setIdentity(current); });
-        updateMarks(current);
-        scheduleOgImage(current);
+    function print(seed) {
+        if (seed === current) return;
+        current = seed;
+        presses.forEach(function (press) { press.print(seed); });
+        if (seedLabel) seedLabel.textContent = seed;
+        updateFavicon(seed);
     }
 
-    if (rollButton) {
-        rollButton.addEventListener("click", function () {
+    if (reprint) {
+        reprint.addEventListener("click", function () {
             const next = freshSeed();
             writeSeedToHash(next);
-            applySeed(next);
-            if (headline && !reducedMotion.matches) {
-                headline.classList.remove("is-rolling");
-                void headline.offsetWidth; // restart the animation
-                headline.classList.add("is-rolling");
-            }
+            print(next);
         });
+        reprint.hidden = false;
     }
+    if (colophon) colophon.hidden = false;
 
-    // The hash is shared with the nav: only #s=... changes the artwork.
+    // The hash is shared with the contents and tabs: only #s=... reprints.
     window.addEventListener("hashchange", function () {
         const fromHash = seedFromHash();
-        if (fromHash) applySeed(fromHash);
+        if (fromHash) print(fromHash);
     });
 
-    createBarcodes();
-    createTimeline();
-    createScrollReadout();
+    watchPageTurns();
+    watchCurrentTab();
 
-    // The automatic roll is not written to the URL, so a reload rolls again.
-    applySeed(seedFromHash() || freshSeed());
-    if (readout) readout.hidden = false;
+    // A fresh print run every visit; only Reprint writes it to the URL.
+    const start = function () { print(seedFromHash() || freshSeed()); };
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(start); // plates size to the laid-out pages
+    } else {
+        start();
+    }
 })();

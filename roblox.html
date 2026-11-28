@@ -10,12 +10,10 @@
 
 <body>
 
-    <header class="masthead">
+    <header class="spine">
         <nav>
-            <a href="index.html" class="logo">
-                <canvas class="sigil" width="16" height="16" aria-hidden="true"></canvas>
-                <span>Assets</span>
-            </a>
+            <a href="index.html" class="logo">Assets</a>
+            <span class="spine-volume" aria-hidden="true">Vol. 1</span>
 
             <div class="nav-links">
                 <a href="index.html#about">About</a>
@@ -26,9 +24,12 @@
         </nav>
     </header>
 
-    <main>
+    <main class="book appendix">
 
-        <section class="project-page">
+        <!-- APPENDIX: bonus pages of the same volume -->
+
+        <section class="page verso project-page">
+
             <h1>Prison Mining Game</h1>
 
             <p>
@@ -49,155 +50,173 @@
             >
                 Play on Roblox →
             </a>
+            <span class="folio" aria-hidden="true">17</span>
         </section>
 
+        <section id="pets" class="pets-chapter" aria-labelledby="pets-title">
 
-        <!-- PETS -->
+            <div class="page recto pets-page">
+                <span class="running-head" aria-hidden="true">Pets</span>
+                <h2 id="pets-title">Pets</h2>
 
-        <section id="pets">
-            <h2>Pets</h2>
+                <p>
+        These are some of the pet models I created for the project.
+        Each pet is shown from two different angles.
+                </p>
 
-            <p>
-                These are some of the pet models I created for the project.
-                Each pet is shown from two different angles.
-            </p>
+                <div class="pet-gallery">
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel1a.png" alt="Pet 01 - view 1">
+                            <img src="images/roblox/pets/petModel1b.png" alt="Pet 01 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 01</h3></figcaption>
+                    </figure>
 
-            <div class="pet-gallery">
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel2a.png" alt="Pet 02 - view 1">
+                            <img src="images/roblox/pets/petModel2b.png" alt="Pet 02 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 02</h3></figcaption>
+                    </figure>
 
-                <article class="pet-card">
-                    <h3>Pet 01</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel1a.png" alt="Pet 01 - view 1">
-                        <img src="images/roblox/pets/petModel1b.png" alt="Pet 01 - view 2">
-                    </div>
-                </article>
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel3a.png" alt="Pet 03 - view 1">
+                            <img src="images/roblox/pets/petModel3b.png" alt="Pet 03 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 03</h3></figcaption>
+                    </figure>
 
-                <article class="pet-card">
-                    <h3>Pet 02</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel2a.png" alt="Pet 02 - view 1">
-                        <img src="images/roblox/pets/petModel2b.png" alt="Pet 02 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 03</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel3a.png" alt="Pet 03 - view 1">
-                        <img src="images/roblox/pets/petModel3b.png" alt="Pet 03 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 04</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel4a.png" alt="Pet 04 - view 1">
-                        <img src="images/roblox/pets/petModel4b.png" alt="Pet 04 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 05</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel5a.png" alt="Pet 05 - view 1">
-                        <img src="images/roblox/pets/petModel5b.png" alt="Pet 05 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 06</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel6a.png" alt="Pet 06 - view 1">
-                        <img src="images/roblox/pets/petModel6b.png" alt="Pet 06 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 07</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel7a.png" alt="Pet 07 - view 1">
-                        <img src="images/roblox/pets/petModel7b.png" alt="Pet 07 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 08</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel8a.png" alt="Pet 08 - view 1">
-                        <img src="images/roblox/pets/petModel8b.png" alt="Pet 08 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 09</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel9a.png" alt="Pet 09 - view 1">
-                        <img src="images/roblox/pets/petModel9b.png" alt="Pet 09 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 10</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel10a.png" alt="Pet 10 - view 1">
-                        <img src="images/roblox/pets/petModel10b.png" alt="Pet 10 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 11</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel11a.png" alt="Pet 11 - view 1">
-                        <img src="images/roblox/pets/petModel11b.png" alt="Pet 11 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 12</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel12a.png" alt="Pet 12 - view 1">
-                        <img src="images/roblox/pets/petModel12b.png" alt="Pet 12 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 13</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel13a.png" alt="Pet 13 - view 1">
-                        <img src="images/roblox/pets/petModel13b.png" alt="Pet 13 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 14</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel14a.png" alt="Pet 14 - view 1">
-                        <img src="images/roblox/pets/petModel14b.png" alt="Pet 14 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 15</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel15a.png" alt="Pet 15 - view 1">
-                        <img src="images/roblox/pets/petModel15b.png" alt="Pet 15 - view 2">
-                    </div>
-                </article>
-
-                <article class="pet-card">
-                    <h3>Pet 16</h3>
-                    <div class="pet-images">
-                        <img src="images/roblox/pets/petModel16a.png" alt="Pet 16 - view 1">
-                        <img src="images/roblox/pets/petModel16b.png" alt="Pet 16 - view 2">
-                    </div>
-                </article>
-
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel4a.png" alt="Pet 04 - view 1">
+                            <img src="images/roblox/pets/petModel4b.png" alt="Pet 04 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 04</h3></figcaption>
+                    </figure>
+                </div>
+                <span class="folio" aria-hidden="true">18</span>
             </div>
+
+            <div class="page verso pets-page">
+                <span class="running-head" aria-hidden="true">I'm Aaron.</span>
+                <div class="pet-gallery">
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel5a.png" alt="Pet 05 - view 1">
+                            <img src="images/roblox/pets/petModel5b.png" alt="Pet 05 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 05</h3></figcaption>
+                    </figure>
+
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel6a.png" alt="Pet 06 - view 1">
+                            <img src="images/roblox/pets/petModel6b.png" alt="Pet 06 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 06</h3></figcaption>
+                    </figure>
+
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel7a.png" alt="Pet 07 - view 1">
+                            <img src="images/roblox/pets/petModel7b.png" alt="Pet 07 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 07</h3></figcaption>
+                    </figure>
+
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel8a.png" alt="Pet 08 - view 1">
+                            <img src="images/roblox/pets/petModel8b.png" alt="Pet 08 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 08</h3></figcaption>
+                    </figure>
+
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel9a.png" alt="Pet 09 - view 1">
+                            <img src="images/roblox/pets/petModel9b.png" alt="Pet 09 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 09</h3></figcaption>
+                    </figure>
+
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel10a.png" alt="Pet 10 - view 1">
+                            <img src="images/roblox/pets/petModel10b.png" alt="Pet 10 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 10</h3></figcaption>
+                    </figure>
+                </div>
+                <span class="folio" aria-hidden="true">19</span>
+            </div>
+
+            <div class="page recto pets-page">
+                <span class="running-head" aria-hidden="true">Pets</span>
+                <div class="pet-gallery">
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel11a.png" alt="Pet 11 - view 1">
+                            <img src="images/roblox/pets/petModel11b.png" alt="Pet 11 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 11</h3></figcaption>
+                    </figure>
+
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel12a.png" alt="Pet 12 - view 1">
+                            <img src="images/roblox/pets/petModel12b.png" alt="Pet 12 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 12</h3></figcaption>
+                    </figure>
+
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel13a.png" alt="Pet 13 - view 1">
+                            <img src="images/roblox/pets/petModel13b.png" alt="Pet 13 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 13</h3></figcaption>
+                    </figure>
+
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel14a.png" alt="Pet 14 - view 1">
+                            <img src="images/roblox/pets/petModel14b.png" alt="Pet 14 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 14</h3></figcaption>
+                    </figure>
+
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel15a.png" alt="Pet 15 - view 1">
+                            <img src="images/roblox/pets/petModel15b.png" alt="Pet 15 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 15</h3></figcaption>
+                    </figure>
+
+                    <figure class="pet-card">
+                        <div class="pet-images">
+                            <img src="images/roblox/pets/petModel16a.png" alt="Pet 16 - view 1">
+                            <img src="images/roblox/pets/petModel16b.png" alt="Pet 16 - view 2">
+                        </div>
+                        <figcaption><h3>Pet 16</h3></figcaption>
+                    </figure>
+                </div>
+                <span class="folio" aria-hidden="true">20</span>
+            </div>
+
         </section>
 
-        <section class="back-link">
+        <section class="page verso back-link">
+            <span class="running-head" aria-hidden="true">I'm Aaron.</span>
             <a href="index.html">← Back to portfolio</a>
+            <span class="folio" aria-hidden="true">21</span>
         </section>
+
+        <div class="page recto page--endpaper" aria-hidden="true"></div>
 
     </main>
 

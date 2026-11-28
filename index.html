@@ -6,7 +6,7 @@
 
     <title>My Portfolio</title>
 
-    <!-- Link previews: images/og.png is identity.js's OG output for the seed "Aaron" -->
+    <!-- Link previews: images/og.png is a capture of the colour-insert spread -->
     <meta property="og:title" content="My Portfolio">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://aaji123.github.io/portfolio/">
@@ -15,8 +15,10 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="theme-color" content="#2335e8">
 
     <script>document.documentElement.classList.add("js");</script>
+    <link rel="preload" href="fonts/dela-gothic-one-400-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -24,493 +26,485 @@
 
     <a class="skip-link" href="#about">Skip to content</a>
 
-    <header class="masthead">
+    <!-- The book's spine and its thumb-index tabs -->
+    <header class="spine">
         <nav>
-            <a href="#" class="logo">
-                <canvas class="sigil" width="16" height="16" aria-hidden="true"></canvas>
-                <span>Portfolio</span>
-            </a>
+            <a href="#" class="logo">Portfolio</a>
+            <span class="spine-volume" aria-hidden="true">Vol. 1</span>
 
             <div class="nav-links">
-                <a href="#about"><span class="idx" aria-hidden="true">01</span>About</a>
-                <a href="#projects"><span class="idx" aria-hidden="true">02</span>Projects</a>
-                <a href="#skills"><span class="idx" aria-hidden="true">03</span>Skills</a>
-                <a href="#contact"><span class="idx" aria-hidden="true">05</span>Contact</a>
+                <a href="#about">About</a>
+                <a href="#projects">Projects</a>
+                <a href="#skills">Skills</a>
+                <a href="#contact">Contact</a>
             </div>
         </nav>
     </header>
 
 
-    <main class="score">
-
-        <!-- INTRO -->
-
-        <section class="hero">
-
-            <div class="identity" aria-hidden="true">
-                <canvas class="identity-canvas" aria-hidden="true"></canvas>
-                <div class="identity-scrim"></div>
-            </div>
-
-            <div class="wrap hero-grid">
-
-                <div class="hero-text">
-                    <p class="small-title">HELLO, WORLD!</p>
-
-                    <h1>I'm Aaron.</h1>
-
-                    <p class="intro">
-                        I'm a Computer Science student at the University of Turku
-                        interested in software and game development.
-                    </p>
-
-                    <div class="buttons">
-                        <a href="#projects" class="button">View my projects</a>
-                        <a href="#contact" class="button secondary">Contact me</a>
-                    </div>
-                </div>
-
-                <figure class="portrait">
-                    <div class="portrait-frame">
-                        <img src="images/Mugshot.jpg" alt="Mugshot" class="profile-picture">
-                    </div>
-                    <figcaption aria-hidden="true">Fig. 1</figcaption>
-                </figure>
-
-            </div>
-
-            <div class="wrap readout" hidden>
-                <button type="button" class="identity-roll">Roll a new one</button>
-                <span class="identity-seed" aria-live="polite"></span>
-                <span class="readout-data" aria-hidden="true"></span>
-            </div>
-
-        </section>
-
-
-        <!-- ABOUT -->
-
-        <section id="about" class="section">
-            <div class="wrap">
-
-                <div class="section-head">
-                    <span class="idx" aria-hidden="true">01</span>
-                    <h2>About</h2>
-                    <canvas class="rule" aria-hidden="true"></canvas>
-                </div>
-
-                <div class="about-body">
-                    <p>
-                        I'm currently studying Computer Science at the University of Turku.
-                        I'm particularly interested in programming, game development and
-                        learning how software is built from the ground up.
-                    </p>
-
-                    <p>
-                        Most of my experience so far comes from university projects
-                        and my own projects. I enjoy working independently, learning
-                        new technologies and turning ideas into something playable or usable.
-                    </p>
-
-                    <p>
-                        Outside of programming, I've also spent a somewhat unhealthy amount of time
-                        playing competitive games. I've reached Grandmaster in Overwatch,
-                        Grand Champion in Rocket League, and Master in Apex Legends.
-                        So I guess I have some experience with games
-                        from the other side of the screen too.
-                        I also regularly lift weights at the gym and enjoy reading light novels and comics in my free time.
-                    </p>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- PROJECTS -->
-
-        <section id="projects" class="section">
-            <div class="wrap">
-
-                <div class="section-head">
-                    <span class="idx" aria-hidden="true">02</span>
-                    <h2>Projects</h2>
-                    <canvas class="rule" aria-hidden="true"></canvas>
-                </div>
-
-                <div class="projects">
-
-                    <article class="project">
-                        <canvas class="glyph" aria-hidden="true"></canvas>
-                        <div class="project-body">
-
-                            <div class="project-top">
-                                <span>01</span>
-                                <span>Next.js / TypeScript</span>
-                            </div>
-
-                            <h3>Ficlet</h3>
-
-                            <p>
-                                A fantasy-romance story generator where users choose tropes,
-                                character archetypes and a desired emotional payoff to create
-                                a personalized scene with AI.
-                            </p>
-
-                            <div class="project-links">
-                                <a href="https://github.com/aaji123/ficlet" target="_blank" rel="noopener noreferrer">GitHub →</a>
-                            </div>
-
-                        </div>
-                    </article>
-
-
-                    <article class="project">
-                        <canvas class="glyph" aria-hidden="true"></canvas>
-                        <div class="project-body">
-
-                            <div class="project-top">
-                                <span>02</span>
-                                <span>Java / React / TypeScript</span>
-                            </div>
-
-                            <h3>IF AI Inventory Assurance</h3>
-
-                            <p>
-                                An independent monitoring layer for inventory decisions made by
-                                AI. It checks proposed orders against business data and
-                                operational rules, then reports risks and guidance without
-                                placing or approving orders. Made as part of the JunctionXTurku
-                                hackathon.
-                            </p>
-
-                            <div class="project-links">
-                                <a href="https://github.com/sucary/ifai" target="_blank" rel="noopener noreferrer">
-                                    GitHub →
-                                </a>
-                            </div>
-
-                        </div>
-                    </article>
-
-
-                    <article class="project">
-                        <canvas class="glyph" aria-hidden="true"></canvas>
-                        <div class="project-body">
-
-                            <div class="project-top">
-                                <span>03</span>
-                                <span>Python</span>
-                            </div>
-
-                            <h3>Cache Simulator</h3>
-
-                            <p>
-                                A 4-way set-associative cache simulator using LRU replacement.
-                                It reports memory request hits and misses, block evictions,
-                                and the final cache contents.
-                            </p>
-
-                            <div class="project-links">
-                                <a href="https://github.com/aaji123/cache_sim" target="_blank" rel="noopener noreferrer">
-                                    GitHub →
-                                </a>
-                            </div>
-
-                        </div>
-                    </article>
-
-
-                    <article class="project">
-                        <canvas class="glyph" aria-hidden="true"></canvas>
-                        <div class="project-body">
-
-                            <div class="project-top">
-                                <span>04</span>
-                                <span>Java / LWJGL</span>
-                            </div>
-
-                            <h3>Tank Game</h3>
-
-                            <p>
-                                A 2D game made with Java and LWJGL as a university
-                                project. The project uses object-oriented programming,
-                                game entities, menus and collision handling.
-                            </p>
-
-                            <div class="project-links">
-                                <a href="https://github.com/aaji123/lwjgl-tank-game" target="_blank" rel="noopener noreferrer">
-                                    GitHub →
-                                </a>
-                            </div>
-
-                        </div>
-                    </article>
-
-
-                    <article class="project">
-                        <canvas class="glyph" aria-hidden="true"></canvas>
-                        <div class="project-body">
-
-                            <div class="project-top">
-                                <span>05</span>
-                                <span>React / Node.js</span>
-                            </div>
-
-                            <h3>MyGameList</h3>
-
-                            <p>
-                                A web application for keeping track of games.
-                                Built with React, Express, MongoDB and JavaScript.
-                            </p>
-
-                            <div class="project-links">
-                                <a href="https://github.com/aaji123/MyGameList" target="_blank" rel="noopener noreferrer">
-                                    GitHub →
-                                </a>
-                            </div>
-
-                        </div>
-                    </article>
-
-
-                    <article class="project">
-                        <canvas class="glyph" aria-hidden="true"></canvas>
-                        <div class="project-body">
-
-                            <div class="project-top">
-                                <span>06</span>
-                                <span>Next.js / TypeScript</span>
-                            </div>
-
-                            <h3>Monkey Sage</h3>
-
-                            <p>
-                                A minimalist daily wisdom app that delivers one thoughtful quote
-                                per day in a privacy-first, no-sign-up experience with a smooth,
-                                mobile-friendly PWA design.
-                            </p>
-
-                            <div class="project-links">
-                                <a href="https://github.com/aaji123/monkeysage" target="_blank" rel="noopener noreferrer">
-                                    GitHub →
-                                </a>
-
-                                <a href="https://monkeysage.vercel.app/" target="_blank" rel="noopener noreferrer">
-                                    Website →
-                                </a>
-                            </div>
-
-                        </div>
-                    </article>
-
-
-                    <article class="project">
-                        <canvas class="glyph" aria-hidden="true"></canvas>
-                        <div class="project-body">
-
-                            <div class="project-top">
-                                <span>07</span>
-                                <span>Luau / Roblox</span>
-                            </div>
-
-                            <h3>Prison Mining Game</h3>
-
-                            <p>
-                                An independent Roblox project inspired by prison mining games.
-                                I worked on the gameplay systems, mining, progression, UI, models, etc.
-                                The game remains unfinished due to losing some assets and scripts after
-                                resetting my PC, but it is still playable.
-                            </p>
-
-                            <div class="project-links">
-                                <a href="roblox.html">View project assets →</a>
-
-                                <a
-                                    href="https://ro.blox.com/Ebh5?af_dp=roblox%3A%2F%2Fnavigation%2Fgame_details%3FgameId%3D10768466064&af_web_dp=https%3A%2F%2Fwww.roblox.com%2Fgames%2F115770962165833"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    Play on Roblox →
-                                </a>
-                            </div>
-
-                        </div>
-                    </article>
-
-
-                    <article class="project">
-                        <canvas class="glyph" aria-hidden="true"></canvas>
-                        <div class="project-body">
-
-                            <div class="project-top">
-                                <span>08</span>
-                                <span>React / Python / FastAPI</span>
-                            </div>
-
-                            <h3>Mythos</h3>
-
-                            <p>
-                                A local, single-player AI storytelling game where you shape a world
-                                and character, then guide the story one action at a time. Campaigns,
-                                character state, inventory and session logs are saved locally.
-                            </p>
-
-                            <div class="project-links">
-                                <a href="https://github.com/aaji123/text-rpg-ai" target="_blank" rel="noopener noreferrer">
-                                    GitHub →
-                                </a>
-                            </div>
-
-                        </div>
-                    </article>
-
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- SKILLS -->
-
-        <section id="skills" class="section">
-            <div class="wrap">
-
-                <div class="section-head">
-                    <span class="idx" aria-hidden="true">03</span>
-                    <h2>Skills</h2>
-                    <canvas class="rule" aria-hidden="true"></canvas>
-                </div>
-
-                <div class="skills-list">
-
-                    <div>
-                        <h3>Languages</h3>
-                        <ul class="tags">
-                            <li>Java</li>
-                            <li>C++</li>
-                            <li>JavaScript</li>
-                            <li>Luau</li>
-                            <li>HTML</li>
-                            <li>CSS</li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3>Tools &amp; Technologies</h3>
-                        <ul class="tags">
-                            <li>Git</li>
-                            <li>GitHub</li>
-                            <li>Unreal Engine</li>
-                            <li>LWJGL</li>
-                            <li>React</li>
-                            <li>Node.js</li>
-                            <li>MongoDB</li>
-                            <li>Blender</li>
-                            <li>Aseprite</li>
-                        </ul>
-                    </div>
-
-                    <div class="learning">
-                        <h3>Currently learning</h3>
-                        <ul class="tags">
-                            <li>C++</li>
-                            <li>Unreal Engine</li>
-                            <li>Game development</li>
-                            <li>Java</li>
-                        </ul>
-                    </div>
-
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- EDUCATION -->
-
-        <section id="education" class="section">
-            <div class="wrap">
-
-                <div class="section-head">
-                    <span class="idx" aria-hidden="true">04</span>
-                    <h2>Education</h2>
-                    <canvas class="rule" aria-hidden="true"></canvas>
-                </div>
-
-                <div class="education-item">
-
-                    <div>
-                        <h3>University of Turku</h3>
-                        <p>Computer Science</p>
-                    </div>
-
-                    <span>2024 – present</span>
-
-                    <div class="timeline" aria-hidden="true">
-                        <canvas class="timeline-canvas"></canvas>
-                        <div class="timeline-labels"></div>
-                    </div>
-
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- CONTACT -->
-
-        <section id="contact" class="section">
-            <div class="wrap">
-
-                <div class="section-head">
-                    <span class="idx" aria-hidden="true">05</span>
-                    <h2>Contact</h2>
-                    <canvas class="rule" aria-hidden="true"></canvas>
-                </div>
-
-                <p class="contact-intro">
-                    If you'd like to get in touch, you can find me here:
+    <main class="book">
+
+        <!-- SPREAD 1: colour insert | title page -->
+
+        <div class="page verso page--insert">
+            <canvas class="focus-lines" aria-hidden="true"></canvas>
+            <figure class="insert-photo">
+                <img src="images/Mugshot.jpg" alt="Mugshot" class="profile-picture">
+            </figure>
+            <p class="small-title balloon">HELLO, WORLD!</p>
+            <span class="page-mark" lang="ja" aria-hidden="true">口絵</span>
+        </div>
+
+        <section class="page recto page--title hero" aria-labelledby="title">
+            <div class="title-block">
+                <h1 id="title">I'm Aaron.</h1>
+
+                <p class="intro">
+                    I'm a Computer Science student at the University of Turku
+                    interested in software and game development.
                 </p>
 
-                <div class="contact-links">
+                <div class="buttons">
+                    <a href="#projects" class="button">View my projects</a>
+                    <a href="#contact" class="button secondary">Contact me</a>
+                </div>
+            </div>
 
-                    <a href="https://github.com/aaji123" target="_blank" rel="noopener noreferrer">
-                        GitHub
-                        <span class="meta" aria-hidden="true">github.com</span>
-                    </a>
+            <span class="volume-mark" aria-hidden="true">Vol. 1</span>
+            <span class="folio" aria-hidden="true">1</span>
+        </section>
 
-                    <a href="https://www.linkedin.com/in/aaron-pasanen-0b726a206/" target="_blank" rel="noopener noreferrer">
-                        LinkedIn
-                        <span class="meta" aria-hidden="true">linkedin.com</span>
-                    </a>
 
-                    <a href="mailto:aaron.pasanen@outlook.com">
-                        Email
-                        <span class="meta" aria-hidden="true">mailto</span>
-                    </a>
+        <!-- SPREAD 2: contents | about -->
 
-                    <a href="https://discord.com/users/181715687792705537" target="_blank" rel="noopener noreferrer">
-                        Discord
-                        <span class="meta" aria-hidden="true">discord.com</span>
-                    </a>
-                    <span> Discord Username: aaji</span>
+        <nav class="page verso page--contents" aria-labelledby="contents-title">
+            <span class="running-head" aria-hidden="true">I'm Aaron.</span>
+            <h2 id="contents-title">Contents</h2>
+            <span class="page-mark page-mark--ink" lang="ja" aria-hidden="true">目次</span>
 
+            <ol class="contents">
+                <li><a href="#about"><span>About</span><span class="leader" aria-hidden="true"></span><span class="pg">3</span></a></li>
+                <li><a href="#skills"><span>Skills</span><span class="leader" aria-hidden="true"></span><span class="pg">4</span></a></li>
+                <li><a href="#education"><span>Education</span><span class="leader" aria-hidden="true"></span><span class="pg">5</span></a></li>
+                <li>
+                    <a href="#projects"><span>Projects</span><span class="leader" aria-hidden="true"></span><span class="pg">6</span></a>
+                    <ol class="contents-episodes">
+                        <li><a href="#ficlet"><span>Ficlet</span><span class="leader" aria-hidden="true"></span><span class="pg">7</span></a></li>
+                        <li><a href="#ifai"><span>IF AI Inventory Assurance</span><span class="leader" aria-hidden="true"></span><span class="pg">8</span></a></li>
+                        <li><a href="#cache-simulator"><span>Cache Simulator</span><span class="leader" aria-hidden="true"></span><span class="pg">9</span></a></li>
+                        <li><a href="#tank-game"><span>Tank Game</span><span class="leader" aria-hidden="true"></span><span class="pg">10</span></a></li>
+                        <li><a href="#mygamelist"><span>MyGameList</span><span class="leader" aria-hidden="true"></span><span class="pg">11</span></a></li>
+                        <li><a href="#monkey-sage"><span>Monkey Sage</span><span class="leader" aria-hidden="true"></span><span class="pg">12</span></a></li>
+                        <li><a href="#prison-mining-game"><span>Prison Mining Game</span><span class="leader" aria-hidden="true"></span><span class="pg">13</span></a></li>
+                        <li><a href="#mythos"><span>Mythos</span><span class="leader" aria-hidden="true"></span><span class="pg">14</span></a></li>
+                    </ol>
+                </li>
+                <li><a href="#contact"><span>Contact</span><span class="leader" aria-hidden="true"></span><span class="pg">15</span></a></li>
+            </ol>
+
+            <span class="folio" aria-hidden="true">2</span>
+        </nav>
+
+        <section id="about" class="page recto page--prose">
+            <span class="running-head" aria-hidden="true">About</span>
+
+            <h2>About</h2>
+
+            <div class="about-body">
+                <p>
+                    I'm currently studying Computer Science at the University of Turku.
+                    I'm particularly interested in programming, game development and
+                    learning how software is built from the ground up.
+                </p>
+
+                <p>
+                    Most of my experience so far comes from university projects
+                    and my own projects. I enjoy working independently, learning
+                    new technologies and turning ideas into something playable or usable.
+                </p>
+
+                <p>
+                    Outside of programming, I've also spent a somewhat unhealthy amount of time
+                    playing competitive games. I've reached Grandmaster in Overwatch,
+                    Grand Champion in Rocket League, and Master in Apex Legends.
+                    So I guess I have some experience with games
+                    from the other side of the screen too.
+                    I also regularly lift weights at the gym and enjoy reading light novels and comics in my free time.
+                </p>
+            </div>
+
+            <span class="folio" aria-hidden="true">3</span>
+        </section>
+
+
+        <!-- SPREAD 3: skills | education -->
+
+        <section id="skills" class="page verso page--status">
+            <span class="running-head" aria-hidden="true">I'm Aaron.</span>
+
+            <h2>Skills</h2>
+
+            <div class="status-window">
+
+                <div class="status-group">
+                    <h3>Languages</h3>
+                    <ul class="tags">
+                        <li>Java</li>
+                        <li>C++</li>
+                        <li>JavaScript</li>
+                        <li>Luau</li>
+                        <li>HTML</li>
+                        <li>CSS</li>
+                    </ul>
+                </div>
+
+                <div class="status-group">
+                    <h3>Tools &amp; Technologies</h3>
+                    <ul class="tags">
+                        <li>Git</li>
+                        <li>GitHub</li>
+                        <li>Unreal Engine</li>
+                        <li>LWJGL</li>
+                        <li>React</li>
+                        <li>Node.js</li>
+                        <li>MongoDB</li>
+                        <li>Blender</li>
+                        <li>Aseprite</li>
+                    </ul>
+                </div>
+
+                <div class="status-group learning">
+                    <h3>Currently learning</h3>
+                    <ul class="tags">
+                        <li>C++</li>
+                        <li>Unreal Engine</li>
+                        <li>Game development</li>
+                        <li>Java</li>
+                    </ul>
                 </div>
 
             </div>
+
+            <span class="folio" aria-hidden="true">4</span>
+        </section>
+
+        <section id="education" class="page recto page--education">
+            <span class="running-head" aria-hidden="true">Education</span>
+
+            <h2>Education</h2>
+
+            <canvas class="plate plate--wide" aria-hidden="true"></canvas>
+
+            <div class="education-item">
+                <div>
+                    <h3>University of Turku</h3>
+                    <p>Computer Science</p>
+                </div>
+
+                <span>2024 – present</span>
+            </div>
+
+            <span class="folio" aria-hidden="true">5</span>
+        </section>
+
+
+        <!-- SPREADS 4–8: projects -->
+
+        <section class="chapter" aria-labelledby="projects-title">
+
+            <div id="projects" class="page verso page--opener">
+                <span class="running-head" aria-hidden="true">I'm Aaron.</span>
+                <canvas class="plate plate--opener" aria-hidden="true"></canvas>
+                <h2 id="projects-title">Projects</h2>
+                <span class="folio" aria-hidden="true">6</span>
+            </div>
+
+            <article id="ficlet" class="page recto project">
+                <span class="running-head" aria-hidden="true">Ficlet</span>
+                <canvas class="plate" aria-hidden="true"></canvas>
+
+                <div class="ep-head">
+                    <span class="ep-number">01</span>
+                    <h3>Ficlet</h3>
+                </div>
+
+                <p>
+                    A fantasy-romance story generator where users choose tropes,
+                    character archetypes and a desired emotional payoff to create
+                    a personalized scene with AI.
+                </p>
+
+                <p class="ep-stack">Next.js / TypeScript</p>
+
+                <div class="project-links">
+                    <a href="https://github.com/aaji123/ficlet" target="_blank" rel="noopener noreferrer">GitHub →</a>
+                </div>
+
+                <span class="folio" aria-hidden="true">7</span>
+            </article>
+
+            <article id="ifai" class="page verso project">
+                <span class="running-head" aria-hidden="true">I'm Aaron.</span>
+                <canvas class="plate" aria-hidden="true"></canvas>
+
+                <div class="ep-head">
+                    <span class="ep-number">02</span>
+                    <h3>IF AI Inventory Assurance</h3>
+                </div>
+
+                <p>
+                    An independent monitoring layer for inventory decisions made by
+                    AI. It checks proposed orders against business data and
+                    operational rules, then reports risks and guidance without
+                    placing or approving orders. Made as part of the JunctionXTurku
+                    hackathon.
+                </p>
+
+                <p class="ep-stack">Java / React / TypeScript</p>
+
+                <div class="project-links">
+                    <a href="https://github.com/sucary/ifai" target="_blank" rel="noopener noreferrer">
+                        GitHub →
+                    </a>
+                </div>
+
+                <span class="folio" aria-hidden="true">8</span>
+            </article>
+
+            <article id="cache-simulator" class="page recto project">
+                <span class="running-head" aria-hidden="true">Cache Simulator</span>
+                <canvas class="plate" aria-hidden="true"></canvas>
+
+                <div class="ep-head">
+                    <span class="ep-number">03</span>
+                    <h3>Cache Simulator</h3>
+                </div>
+
+                <p>
+                    A 4-way set-associative cache simulator using LRU replacement.
+                    It reports memory request hits and misses, block evictions,
+                    and the final cache contents.
+                </p>
+
+                <p class="ep-stack">Python</p>
+
+                <div class="project-links">
+                    <a href="https://github.com/aaji123/cache_sim" target="_blank" rel="noopener noreferrer">
+                        GitHub →
+                    </a>
+                </div>
+
+                <span class="folio" aria-hidden="true">9</span>
+            </article>
+
+            <article id="tank-game" class="page verso project">
+                <span class="running-head" aria-hidden="true">I'm Aaron.</span>
+                <canvas class="plate" aria-hidden="true"></canvas>
+
+                <div class="ep-head">
+                    <span class="ep-number">04</span>
+                    <h3>Tank Game</h3>
+                </div>
+
+                <p>
+                    A 2D game made with Java and LWJGL as a university
+                    project. The project uses object-oriented programming,
+                    game entities, menus and collision handling.
+                </p>
+
+                <p class="ep-stack">Java / LWJGL</p>
+
+                <div class="project-links">
+                    <a href="https://github.com/aaji123/lwjgl-tank-game" target="_blank" rel="noopener noreferrer">
+                        GitHub →
+                    </a>
+                </div>
+
+                <span class="folio" aria-hidden="true">10</span>
+            </article>
+
+            <article id="mygamelist" class="page recto project">
+                <span class="running-head" aria-hidden="true">MyGameList</span>
+                <canvas class="plate" aria-hidden="true"></canvas>
+
+                <div class="ep-head">
+                    <span class="ep-number">05</span>
+                    <h3>MyGameList</h3>
+                </div>
+
+                <p>
+                    A web application for keeping track of games.
+                    Built with React, Express, MongoDB and JavaScript.
+                </p>
+
+                <p class="ep-stack">React / Node.js</p>
+
+                <div class="project-links">
+                    <a href="https://github.com/aaji123/MyGameList" target="_blank" rel="noopener noreferrer">
+                        GitHub →
+                    </a>
+                </div>
+
+                <span class="folio" aria-hidden="true">11</span>
+            </article>
+
+            <article id="monkey-sage" class="page verso project">
+                <span class="running-head" aria-hidden="true">I'm Aaron.</span>
+                <canvas class="plate" aria-hidden="true"></canvas>
+
+                <div class="ep-head">
+                    <span class="ep-number">06</span>
+                    <h3>Monkey Sage</h3>
+                </div>
+
+                <p>
+                    A minimalist daily wisdom app that delivers one thoughtful quote
+                    per day in a privacy-first, no-sign-up experience with a smooth,
+                    mobile-friendly PWA design.
+                </p>
+
+                <p class="ep-stack">Next.js / TypeScript</p>
+
+                <div class="project-links">
+                    <a href="https://github.com/aaji123/monkeysage" target="_blank" rel="noopener noreferrer">
+                        GitHub →
+                    </a>
+
+                    <a href="https://monkeysage.vercel.app/" target="_blank" rel="noopener noreferrer">
+                        Website →
+                    </a>
+                </div>
+
+                <span class="folio" aria-hidden="true">12</span>
+            </article>
+
+            <article id="prison-mining-game" class="page recto project">
+                <span class="running-head" aria-hidden="true">Prison Mining Game</span>
+                <canvas class="plate" aria-hidden="true"></canvas>
+
+                <div class="ep-head">
+                    <span class="ep-number">07</span>
+                    <h3>Prison Mining Game</h3>
+                </div>
+
+                <p>
+                    An independent Roblox project inspired by prison mining games.
+                    I worked on the gameplay systems, mining, progression, UI, models, etc.
+                    The game remains unfinished due to losing some assets and scripts after
+                    resetting my PC, but it is still playable.
+                </p>
+
+                <p class="ep-stack">Luau / Roblox</p>
+
+                <div class="project-links">
+                    <a href="roblox.html">View project assets →</a>
+
+                    <a
+                        href="https://ro.blox.com/Ebh5?af_dp=roblox%3A%2F%2Fnavigation%2Fgame_details%3FgameId%3D10768466064&af_web_dp=https%3A%2F%2Fwww.roblox.com%2Fgames%2F115770962165833"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Play on Roblox →
+                    </a>
+                </div>
+
+                <span class="folio" aria-hidden="true">13</span>
+            </article>
+
+            <article id="mythos" class="page verso project">
+                <span class="running-head" aria-hidden="true">I'm Aaron.</span>
+                <canvas class="plate" aria-hidden="true"></canvas>
+
+                <div class="ep-head">
+                    <span class="ep-number">08</span>
+                    <h3>Mythos</h3>
+                </div>
+
+                <p>
+                    A local, single-player AI storytelling game where you shape a world
+                    and character, then guide the story one action at a time. Campaigns,
+                    character state, inventory and session logs are saved locally.
+                </p>
+
+                <p class="ep-stack">React / Python / FastAPI</p>
+
+                <div class="project-links">
+                    <a href="https://github.com/aaji123/text-rpg-ai" target="_blank" rel="noopener noreferrer">
+                        GitHub →
+                    </a>
+                </div>
+
+                <span class="folio" aria-hidden="true">14</span>
+            </article>
+
+        </section>
+
+
+        <!-- SPREAD 8 (recto): contact, set as the afterword -->
+
+        <section id="contact" class="page recto page--afterword">
+            <span class="running-head" aria-hidden="true">Contact</span>
+
+            <h2>Contact</h2>
+            <span class="page-mark page-mark--ink" lang="ja" aria-hidden="true">あとがき</span>
+
+            <p class="contact-intro">
+                If you'd like to get in touch, you can find me here:
+            </p>
+
+            <div class="contact-links">
+
+                <a href="https://github.com/aaji123" target="_blank" rel="noopener noreferrer">
+                    GitHub
+                </a>
+
+                <a href="https://www.linkedin.com/in/aaron-pasanen-0b726a206/" target="_blank" rel="noopener noreferrer">
+                    LinkedIn
+                </a>
+
+                <a href="mailto:aaron.pasanen@outlook.com">
+                    Email
+                </a>
+
+                <a href="https://discord.com/users/181715687792705537" target="_blank" rel="noopener noreferrer">
+                    Discord
+                </a>
+                <span> Discord Username: aaji</span>
+
+            </div>
+
+            <span class="folio" aria-hidden="true">15</span>
         </section>
 
     </main>
 
 
-    <footer>
+    <!-- LAST SPREAD: colophon | back endpaper -->
 
-        <p>:]</p>
-        <span class="footer-seed" hidden></span>
+    <footer class="book book--end">
+
+        <div class="page verso page--colophon">
+            <p>:]</p>
+
+            <dl class="colophon" hidden>
+                <div>
+                    <dt>Print run</dt>
+                    <dd class="identity-seed" aria-live="polite"></dd>
+                </div>
+                <div>
+                    <dt>Printed</dt>
+                    <dd>in your browser</dd>
+                </div>
+            </dl>
+
+            <button type="button" class="reprint" hidden>Reprint</button>
+
+            <span class="folio" aria-hidden="true">16</span>
+        </div>
+
+        <div class="page recto page--endpaper" aria-hidden="true"></div>
 
     </footer>
-
-    <div class="scroll-readout" aria-hidden="true" hidden></div>
 
 
     <script src="script.js"></script>
